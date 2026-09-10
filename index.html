@@ -91,7 +91,8 @@
     color:#123;font-size:10px;line-height:12px;text-align:center;font-weight:700;cursor:pointer}
   .putty-bar .wbtn.x{background:#d15b4c;color:#fff}
 
-  .term{flex:1;min-height:0;overflow:auto;padding:8px 12px 12px;
+  .term{flex:1;min-height:0;overflow:auto;padding:8px 12px 12px;touch-action:manipulation;
+    -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
     font-family:"VT323",monospace;font-size:18px;line-height:1.16;color:var(--fg);
     text-shadow:0 0 2px rgba(180,230,190,.14);white-space:pre-wrap;word-break:break-word;cursor:text;background:#000}
   .term::-webkit-scrollbar{width:12px;background:#0a0a0a}
@@ -139,13 +140,13 @@
   .radios{display:flex;gap:14px;align-items:center;margin:6px 0 2px}
   .radios label{display:flex;align-items:center;gap:5px;width:auto;color:#222}
   .sessions{border:1px solid #7f9db9;background:#fff;height:92px;overflow:auto;margin-top:6px}
-  .sessions div{padding:4px 8px;cursor:pointer}
+  .sessions div{padding:4px 8px;cursor:pointer;touch-action:manipulation}
   .sessions div.sel{background:#0a246a;color:#fff}
-  .sessions div:hover:not(.sel){background:#dbe6f5}
+  @media (hover:hover){.sessions div:hover:not(.sel){background:#dbe6f5}}
   .dialog .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:13px}
   .xpbtn{font-family:Tahoma;font-size:12px;padding:4px 16px;color:#1b1b12;cursor:pointer;
     background:linear-gradient(180deg,#fdfdfd,#dcdcc8);border:1px solid #8a8a72;border-radius:3px;box-shadow:0 1px 0 #fff inset}
-  .xpbtn:hover{background:linear-gradient(180deg,#fff,#e7e7d2)}
+  @media (hover:hover){.xpbtn:hover{background:linear-gradient(180deg,#fff,#e7e7d2)}}
   .xpbtn.primary{font-weight:700}
   .hint{color:#555;font-size:11px;margin-top:9px;line-height:1.4}
 
@@ -172,11 +173,11 @@
   .deck-head .loc{font-size:11px;color:#5c543c;display:block;margin-top:2px}
   .deck-head .loc b{font-family:"VT323";font-size:14px;color:#2a2618}
   .btns{display:flex;flex-direction:column;gap:7px;max-height:calc(100vh - 330px);overflow:auto}
-  .cmdbtn{font-family:Tahoma;font-size:12px;text-align:left;cursor:pointer;
+  .cmdbtn{font-family:Tahoma;font-size:12px;text-align:left;cursor:pointer;touch-action:manipulation;
     background:linear-gradient(180deg,var(--btn),var(--btn-lo));color:var(--btn-txt);
     border:1px solid var(--btn-line);border-radius:5px;padding:6px 9px;line-height:1.12;
     box-shadow:0 1px 0 #fff8 inset,0 1px 2px #0002}
-  .cmdbtn:hover{background:linear-gradient(180deg,#fff,#cfc6ab)}
+  @media (hover:hover){.cmdbtn:hover{background:linear-gradient(180deg,#fff,#cfc6ab)}}
   .cmdbtn:active{transform:translateY(1px)}
   .cmdbtn .c{display:block;font-family:"VT323",monospace;font-size:14px;color:#1c3b28;margin-top:1px}
   .cmdbtn.accent .c{color:#7a2b1f}
@@ -186,21 +187,21 @@
   footer{margin:auto 4px 0;padding-top:12px;color:#8ea3ad;font-size:11px;line-height:1.45;max-width:640px}
   footer code{font-family:"VT323",monospace;font-size:14px;color:#c4d2d8}
   /* achievements */
-  .ach-btn{margin-left:auto;align-self:center;font-family:Tahoma;font-size:12px;font-weight:700;cursor:pointer;
+  .ach-btn{margin-left:auto;align-self:center;font-family:Tahoma;font-size:12px;font-weight:700;cursor:pointer;touch-action:manipulation;
     color:#2a2410;background:linear-gradient(180deg,#ffe272,#eeb400);border:1px solid #b9930c;border-radius:6px;
     padding:6px 12px;box-shadow:0 1px 0 #fff8 inset,0 2px 6px -2px #0006;display:flex;align-items:center;gap:7px}
-  .ach-btn:hover{background:linear-gradient(180deg,#fff0a6,#f6c21e)}
+  @media (hover:hover){.ach-btn:hover{background:linear-gradient(180deg,#fff0a6,#f6c21e)}}
   .ach-btn .star{color:#8a5a00;font-size:14px}
   .ach-btn .cnt{font-family:"VT323",monospace;font-size:14px;color:#5a3d00}
   /* soundtrack toggle: sits left of the achievements button and steals its auto margin */
   .ach-btn.snd{margin-left:auto;color:#08283a;background:linear-gradient(180deg,#9fe6ff,#37a8dd);border-color:#1d7ba8}
-  .ach-btn.snd:hover{background:linear-gradient(180deg,#c2f0ff,#54bde9)}
+  @media (hover:hover){.ach-btn.snd:hover{background:linear-gradient(180deg,#c2f0ff,#54bde9)}}
   .ach-btn.snd .cnt{color:#083049}
   .ach-btn.snd.off{background:linear-gradient(180deg,#d2ccbc,#a49c86);border-color:#7d7561;color:#3a3527}
   .ach-btn.snd.off .cnt{color:#3a3527}
   .ach-btn.snd ~ .ach-btn{margin-left:0}
   .ach-btn.sty{background:linear-gradient(180deg,#4a5b68,#27353f);border-color:#16222b;color:#d3e7f3}
-  .ach-btn.sty:hover{background:linear-gradient(180deg,#5c7080,#33454f)}
+  @media (hover:hover){.ach-btn.sty:hover{background:linear-gradient(180deg,#5c7080,#33454f)}}
   .ach-btn.sty .nm{font-family:"VT323",monospace;font-size:15px;letter-spacing:.5px;color:#8fe3ff}
   .ach-btn.sty.off{background:linear-gradient(180deg,#b3ab98,#8d8674);border-color:#6d6656;color:#2f2b20}
   .ach-btn.sty.off .nm{color:#2f2b20}
@@ -257,7 +258,7 @@
     .crt-monitor{padding:14px 12px 10px;border-radius:18px 18px 20px 20px}
     .crt-monitor::before{display:none}
     .crt-screen{padding:10px;border-radius:14px}
-    .glass{aspect-ratio:1/1}
+    .glass{aspect-ratio:auto;height:min(60vh,500px);height:min(60svh,500px)}
     .putty-window{left:6px;right:6px;top:6px;bottom:36px}
     .term{font-size:17px;padding:6px 8px 10px}
     .taskbar{height:30px}
@@ -1588,9 +1589,14 @@ termEl.addEventListener('click',()=>hin.focus());
 
 /* ---------------- dialog wiring ---------------- */
 let selBuild='exploris';
+function pickSession(d){
+  document.querySelectorAll('#sessions div').forEach(x=>x.classList.remove('sel'));
+  d.classList.add('sel'); selBuild=d.dataset.build;
+}
 document.querySelectorAll('#sessions div').forEach(d=>{
-  d.onclick=()=>{ document.querySelectorAll('#sessions div').forEach(x=>x.classList.remove('sel'));
-    d.classList.add('sel'); selBuild=d.dataset.build; };
+  d.onclick=()=>pickSession(d);
+  // real PuTTY opens a saved session on double-click; on a phone this is a double-tap
+  d.ondblclick=()=>{ pickSession(d); document.getElementById('btnOpen').click(); };
 });
 document.getElementById('btnOpen').onclick=()=>{
   const proto=document.querySelector('input[name=proto]:checked').value;
