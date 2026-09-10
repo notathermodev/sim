@@ -1,0 +1,2057 @@
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thermo Developer Simulator 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Gloria+Hallelujah&display=swap">
+<style>
+  :root{
+    --room-1:#243b52; --room-2:#0f1b26;
+    --case:#d9d2bd; --case-hi:#efe9d6; --case-lo:#b7ae93; --case-edge:#8a8069;
+    --glass:#050806; --fg:#c9c9c9; --fg-dim:#8b8b8b; --fg-bright:#ffffff;
+    --curs:#35ff6a;
+    --xp1:#3a6ea5; --xp2:#0a2c73; --xpstart1:#3c9d3c; --xpstart2:#2b7a2b;
+    --panel:#cdc4aa; --btn:#ece6d1; --btn-lo:#bcb295; --btn-txt:#2a2618; --btn-line:#8a8168;
+    color-scheme: dark;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    min-height:100vh;color:#d7d2c4;font-family:Tahoma,Geneva,Verdana,sans-serif;font-size:13px;
+    background:
+      radial-gradient(1100px 640px at 50% -12%, #34506a, transparent 62%),
+      linear-gradient(180deg,var(--room-1),var(--room-2));
+    padding:10px 16px 14px;
+  }
+  .room{max-width:1060px;margin:0 auto}
+  .pagehead{display:flex;align-items:center;gap:12px;margin:0 4px 10px;flex-wrap:wrap}
+  .pagehead h1{font-family:"VT323",monospace;font-weight:400;font-size:28px;letter-spacing:.5px;
+    color:#dfe7e2;margin:0;text-shadow:0 0 12px rgba(120,180,150,.28)}
+  .pagehead .tag{font-size:12px;color:#8ea3ad}
+  .pagehead .tag b{color:#c4d2d8;font-weight:400}
+  .pagehead h1 .secret-o{position:relative}
+  .pagehead h1 .secret-o .hit{position:absolute;left:50%;top:56%;transform:translate(-50%,-50%);
+    width:9px;height:9px;border-radius:50%;cursor:default}
+
+  .workbench{display:flex;gap:20px;align-items:flex-start}
+  @media (max-width:900px){.workbench{flex-direction:column}.monitor-col{width:100%}}
+  .monitor-col{position:relative;flex:1 1 auto;min-width:0}
+  /* keep the whole workbench inside the viewport: cap the tube by available height */
+  @media (min-width:901px){
+    .room{min-height:calc(100vh - 34px);display:flex;flex-direction:column;
+      max-width:min(1400px, calc((100vh - 290px) * 4 / 3 + 378px))}
+    .monitor-col{max-width:calc((100vh - 290px) * 4 / 3 + 108px)}
+  }
+
+  .crt-monitor{
+    background:linear-gradient(158deg,var(--case-hi),var(--case) 34%,var(--case-lo) 96%);
+    border-radius:30px 30px 34px 34px;padding:30px 34px 14px;position:relative;
+    box-shadow:0 3px 0 #fff8 inset, 0 -22px 40px -20px var(--case-edge) inset,
+      -18px 0 30px -22px #00000030 inset, 18px 0 30px -22px #00000030 inset,
+      0 40px 70px -26px rgba(0,0,0,.78);
+    border:1px solid #00000022;
+  }
+  .crt-monitor::before{content:"";position:absolute;right:30px;top:30px;bottom:70px;width:5px;border-radius:3px;
+    background:repeating-linear-gradient(180deg, #0000 0 4px, #00000018 4px 6px)}
+  .crt-screen{position:relative;border-radius:22px 22px 26px 26px;padding:20px;
+    background:linear-gradient(#0a0a0a,#181818);
+    box-shadow:0 0 0 2px #00000066, 0 12px 30px -10px #000 inset, 0 0 0 10px #cbc3ad;}
+  .glass{position:relative;border-radius:12px 12px 14px 14px;overflow:hidden;background:var(--glass);
+    aspect-ratio:4/3;min-height:0;box-shadow:0 0 70px rgba(80,160,110,.10) inset, 0 0 0 1px #000;}
+  .glass::before{content:"";position:absolute;inset:0;z-index:6;pointer-events:none;border-radius:inherit;
+    background:radial-gradient(125% 135% at 50% 46%, transparent 58%, rgba(0,0,0,.6) 100%)}
+  .glass::after{content:"";position:absolute;inset:0;z-index:7;pointer-events:none;border-radius:inherit;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);
+    mix-blend-mode:multiply;animation:flick 6s infinite steps(60)}
+  @keyframes flick{0%,96%,100%{opacity:.55}97%{opacity:.7}98%{opacity:.45}}
+  .glare{position:absolute;z-index:5;left:6%;top:4%;width:52%;height:38%;pointer-events:none;
+    background:radial-gradient(120% 120% at 20% 0%, rgba(255,255,255,.06), transparent 60%);
+    transform:rotate(-8deg);border-radius:50%}
+
+  .crt-brand{text-align:center;font-family:"VT323",monospace;font-size:16px;letter-spacing:2px;
+    color:#5c5544;margin-top:10px;text-shadow:0 1px 0 #fff7}
+  .crt-controls{position:absolute;right:40px;bottom:20px;display:flex;align-items:center;gap:12px}
+  .crt-controls .knob{width:15px;height:15px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #efe9d6, #a49a80);box-shadow:0 1px 2px #0004,0 0 0 2px #00000012}
+  .pwr{width:26px;height:14px;border-radius:8px;background:linear-gradient(#c7bfa6,#9b917a);
+    box-shadow:0 1px 2px #0005 inset;cursor:pointer;position:relative}
+  .pwr::after{content:"";position:absolute;left:4px;top:4px;width:6px;height:6px;border-radius:50%;
+    background:var(--curs);box-shadow:0 0 7px var(--curs)}
+
+  .winxp-desktop{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;
+    background:linear-gradient(180deg,#5b8fd6 0%,#6ea3e0 42%,#7cb85a 42%,#4e8f3a 100%)}
+  .putty-window{position:absolute;left:14px;right:14px;top:12px;bottom:44px;display:flex;flex-direction:column;
+    border:1px solid #17325f;box-shadow:0 8px 22px -8px #000a;background:#000}
+  .putty-bar{display:flex;align-items:center;gap:7px;padding:3px 5px;flex:none;
+    background:linear-gradient(180deg,var(--xp1),var(--xp2));color:#fff;font-size:11px;font-weight:700;
+    text-shadow:0 1px 1px #0006}
+  .putty-bar .ico{width:14px;height:14px;background:#111;border:1px solid #fff5;border-radius:2px;flex:none;
+    display:grid;place-items:center;color:var(--curs);font-family:"VT323";font-size:12px}
+  .putty-bar .sp{flex:1}
+  .putty-bar .wbtn{width:16px;height:14px;background:#c9d3e8;border:1px solid #ffffff88;border-radius:2px;
+    color:#123;font-size:10px;line-height:12px;text-align:center;font-weight:700;cursor:pointer}
+  .putty-bar .wbtn.x{background:#d15b4c;color:#fff}
+
+  .term{flex:1;min-height:0;overflow:auto;padding:8px 12px 12px;
+    font-family:"VT323",monospace;font-size:18px;line-height:1.16;color:var(--fg);
+    text-shadow:0 0 2px rgba(180,230,190,.14);white-space:pre-wrap;word-break:break-word;cursor:text;background:#000}
+  .term::-webkit-scrollbar{width:12px;background:#0a0a0a}
+  .term::-webkit-scrollbar-thumb{background:#2a2a2a;border:2px solid #0a0a0a}
+  .pr{color:var(--fg)}
+  .bright,.l-user{color:var(--fg-bright)}
+  .dim,.l-dim{color:var(--fg-dim)}
+  .l-red,.l-amber,.l-blue{color:var(--fg)}
+  .green{color:#49e06a;text-shadow:0 0 6px rgba(73,224,106,.4)}
+  .gred{color:#ff6a5e;text-shadow:0 0 6px rgba(255,106,94,.35)}
+  .cursor{display:inline-block;width:9px;height:16px;transform:translateY(3px);
+    background:var(--curs);box-shadow:0 0 8px rgba(53,255,106,.7);animation:blink 1.06s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  /* invisible, but on-screen: phones refuse to open the keyboard for an off-screen input */
+  .hidden-input{position:absolute;opacity:0;pointer-events:none;z-index:1;
+    left:24px;top:44%;width:60%;height:22px;font-size:16px;border:0;background:transparent}
+
+  .taskbar{position:absolute;left:0;right:0;bottom:0;height:32px;z-index:4;display:flex;align-items:stretch;
+    background:linear-gradient(180deg,#3f8ce0 0,#2a72cf 8%,#245fbf 92%,#1c4fa8 100%);border-top:1px solid #6fb0ee}
+  .startbtn{display:flex;align-items:center;gap:5px;padding:0 16px 0 12px;border:none;cursor:default;
+    font-family:Tahoma;font-style:italic;font-weight:700;font-size:15px;color:#fff;text-shadow:0 1px 2px #0007;
+    border-radius:0 12px 12px 0;background:linear-gradient(180deg,#4fb04f,var(--xpstart1) 45%,var(--xpstart2));
+    box-shadow:0 0 0 1px #2b6b2b inset}
+  .startbtn .orb{width:15px;height:15px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#eafbea,#5fbf5f 60%,#2f7f2f)}
+  .task{display:flex;align-items:center;gap:6px;margin:4px 0 4px 8px;padding:0 10px;font-size:11px;color:#fff;
+    background:linear-gradient(180deg,#5a9ee6,#3573c8);border:1px solid #2a63b0;border-radius:3px;
+    box-shadow:0 1px 0 #ffffff44 inset;max-width:200px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .task .ico{width:12px;height:12px;background:#111;border:1px solid #ffffff55;border-radius:2px;flex:none;
+    display:grid;place-items:center;color:var(--curs);font-family:"VT323";font-size:10px}
+  .tray{margin-left:auto;display:flex;align-items:center;gap:8px;padding:0 12px;color:#fff;font-size:11px;
+    background:linear-gradient(180deg,#1b8ec9,#127fb8);border-left:1px solid #6fb0ee;box-shadow:1px 0 0 #3aa0d6 inset}
+
+  .dialog-wrap{position:absolute;inset:0;z-index:9;display:grid;place-items:center;background:rgba(2,10,6,.5);padding:12px}
+  .dialog{width:min(430px,96%);background:#ece9d8;color:#111;border:1px solid #fff;color-scheme:light;
+    box-shadow:0 0 0 1px #6b6b6b,0 14px 34px -10px #000;font-size:12px}
+  .dialog .cap{background:linear-gradient(180deg,var(--xp1),var(--xp2));color:#fff;font-weight:700;
+    padding:4px 8px;display:flex;align-items:center;gap:8px}
+  .dialog .cap .sp{flex:1}
+  .dialog .body{padding:13px 15px 15px}
+  .dialog h3{margin:0 0 8px;font-size:12px;color:#0a246a;border-bottom:1px solid #c6c3b0;padding-bottom:4px}
+  .drow{display:flex;align-items:center;gap:8px;margin:8px 0}
+  .drow label{width:78px;color:#222}
+  .drow input[type=text]{flex:1;padding:3px 5px;border:1px solid #7f9db9;background:#fff;color:#111;font-family:inherit}
+  .radios{display:flex;gap:14px;align-items:center;margin:6px 0 2px}
+  .radios label{display:flex;align-items:center;gap:5px;width:auto;color:#222}
+  .sessions{border:1px solid #7f9db9;background:#fff;height:92px;overflow:auto;margin-top:6px}
+  .sessions div{padding:4px 8px;cursor:pointer}
+  .sessions div.sel{background:#0a246a;color:#fff}
+  .sessions div:hover:not(.sel){background:#dbe6f5}
+  .dialog .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:13px}
+  .xpbtn{font-family:Tahoma;font-size:12px;padding:4px 16px;color:#1b1b12;cursor:pointer;
+    background:linear-gradient(180deg,#fdfdfd,#dcdcc8);border:1px solid #8a8a72;border-radius:3px;box-shadow:0 1px 0 #fff inset}
+  .xpbtn:hover{background:linear-gradient(180deg,#fff,#e7e7d2)}
+  .xpbtn.primary{font-weight:700}
+  .hint{color:#555;font-size:11px;margin-top:9px;line-height:1.4}
+
+  .sticky{position:absolute;top:24px;right:-18px;z-index:20;width:190px;transform:rotate(3.2deg);
+    background:linear-gradient(180deg,#fff6a8,#ffe86b);color:#3a3320;
+    font-family:"Gloria Hallelujah",cursive;font-size:11px;line-height:1.5;padding:22px 16px 16px;
+    box-shadow:0 12px 20px -8px rgba(0,0,0,.5)}
+  .sticky::before{content:"";position:absolute;left:50%;top:-11px;transform:translateX(-50%) rotate(-2deg);
+    width:96px;height:26px;background:rgba(200,200,180,.42);box-shadow:0 2px 5px rgba(0,0,0,.18);
+    border-left:1px solid #ffffff55;border-right:1px solid #00000010}
+  .sticky .joke{color:#9a3b12;font-size:11px;margin-bottom:7px}
+  .sticky hr{border:none;border-top:1px dashed #b9a94e;margin:8px 0}
+  .sticky .hd{font-size:10px;letter-spacing:.3px;color:#6a5c1e}
+  .sticky b{color:#1f2a6b}
+  .sticky .cur{color:#8a2b12}
+  @media (max-width:900px){.sticky{position:static;transform:none;width:auto;margin:14px 0 0;right:auto}
+    .sticky::before{display:none}}
+
+  .deck{flex:0 0 250px;align-self:stretch;background:linear-gradient(180deg,#d9d0b7,var(--panel));
+    border-radius:12px;padding:12px 12px 14px;box-shadow:0 2px 0 #fff9 inset,0 -3px 8px #a99f8677 inset,0 16px 30px -18px rgba(0,0,0,.55)}
+  @media (max-width:900px){.deck{flex:1 1 auto;width:100%}}
+  .deck-head{margin-bottom:10px}
+  .deck-head .k{font-family:"VT323",monospace;font-size:17px;color:#3a3524;letter-spacing:.5px;display:block}
+  .deck-head .loc{font-size:11px;color:#5c543c;display:block;margin-top:2px}
+  .deck-head .loc b{font-family:"VT323";font-size:14px;color:#2a2618}
+  .btns{display:flex;flex-direction:column;gap:7px;max-height:calc(100vh - 330px);overflow:auto}
+  .cmdbtn{font-family:Tahoma;font-size:12px;text-align:left;cursor:pointer;
+    background:linear-gradient(180deg,var(--btn),var(--btn-lo));color:var(--btn-txt);
+    border:1px solid var(--btn-line);border-radius:5px;padding:6px 9px;line-height:1.12;
+    box-shadow:0 1px 0 #fff8 inset,0 1px 2px #0002}
+  .cmdbtn:hover{background:linear-gradient(180deg,#fff,#cfc6ab)}
+  .cmdbtn:active{transform:translateY(1px)}
+  .cmdbtn .c{display:block;font-family:"VT323",monospace;font-size:14px;color:#1c3b28;margin-top:1px}
+  .cmdbtn.accent .c{color:#7a2b1f}
+  .cmdbtn.py .c{color:#6a4a12}
+  .deck .disabled{color:#7a7358;font-size:12px;padding:6px 2px}
+
+  footer{margin:auto 4px 0;padding-top:12px;color:#8ea3ad;font-size:11px;line-height:1.45;max-width:640px}
+  footer code{font-family:"VT323",monospace;font-size:14px;color:#c4d2d8}
+  /* achievements */
+  .ach-btn{margin-left:auto;align-self:center;font-family:Tahoma;font-size:12px;font-weight:700;cursor:pointer;
+    color:#2a2410;background:linear-gradient(180deg,#ffe272,#eeb400);border:1px solid #b9930c;border-radius:6px;
+    padding:6px 12px;box-shadow:0 1px 0 #fff8 inset,0 2px 6px -2px #0006;display:flex;align-items:center;gap:7px}
+  .ach-btn:hover{background:linear-gradient(180deg,#fff0a6,#f6c21e)}
+  .ach-btn .star{color:#8a5a00;font-size:14px}
+  .ach-btn .cnt{font-family:"VT323",monospace;font-size:14px;color:#5a3d00}
+  /* soundtrack toggle: sits left of the achievements button and steals its auto margin */
+  .ach-btn.snd{margin-left:auto;color:#08283a;background:linear-gradient(180deg,#9fe6ff,#37a8dd);border-color:#1d7ba8}
+  .ach-btn.snd:hover{background:linear-gradient(180deg,#c2f0ff,#54bde9)}
+  .ach-btn.snd .cnt{color:#083049}
+  .ach-btn.snd.off{background:linear-gradient(180deg,#d2ccbc,#a49c86);border-color:#7d7561;color:#3a3527}
+  .ach-btn.snd.off .cnt{color:#3a3527}
+  .ach-btn.snd ~ .ach-btn{margin-left:0}
+  .ach-btn.sty{background:linear-gradient(180deg,#4a5b68,#27353f);border-color:#16222b;color:#d3e7f3}
+  .ach-btn.sty:hover{background:linear-gradient(180deg,#5c7080,#33454f)}
+  .ach-btn.sty .nm{font-family:"VT323",monospace;font-size:15px;letter-spacing:.5px;color:#8fe3ff}
+  .ach-btn.sty.off{background:linear-gradient(180deg,#b3ab98,#8d8674);border-color:#6d6656;color:#2f2b20}
+  .ach-btn.sty.off .nm{color:#2f2b20}
+  .eq{display:flex;align-items:flex-end;gap:2px;width:13px;height:13px}
+  .eq i{flex:1;height:28%;border-radius:1px;background:#08283a;animation:eqb .78s ease-in-out infinite}
+  .eq i:nth-child(2){animation-duration:.62s;animation-delay:.16s}
+  .eq i:nth-child(3){animation-duration:1.02s;animation-delay:.33s}
+  @keyframes eqb{0%,100%{height:26%}50%{height:100%}}
+  .ach-btn.snd.off .eq i{animation-play-state:paused;height:26%;background:#4a4436}
+  .toast-wrap{position:fixed;top:16px;right:16px;z-index:100;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+  .toast{width:308px;background:linear-gradient(180deg,#1c2620,#0e1512);border:1px solid #49e06a55;
+    border-left:4px solid #49e06a;border-radius:8px;padding:11px 14px;color:#e7f3ea;
+    box-shadow:0 14px 30px -10px #000c, 0 0 22px -6px #49e06a33;
+    transform:translateX(120%);transition:transform .45s cubic-bezier(.2,.9,.25,1);pointer-events:auto}
+  .toast.show{transform:translateX(0)}
+  .toast .k{font-family:"VT323",monospace;font-size:13px;color:#49e06a;letter-spacing:.5px;display:flex;align-items:center;gap:7px}
+  .toast .t{font-weight:700;font-size:14px;margin:3px 0 3px}
+  .toast .b{font-size:12px;color:#a9bdb0;line-height:1.4}
+  .ach-panel{position:fixed;inset:0;z-index:99;display:grid;place-items:center;background:rgba(4,10,7,.62);padding:18px}
+  .ach-panel[hidden]{display:none}
+  .ach-card{width:min(560px,96%);max-height:82vh;overflow:auto;background:#12100a;color:#e9e4d4;
+    border:1px solid #3a3320;border-radius:12px;box-shadow:0 30px 70px -20px #000}
+  .ach-card header{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid #2a2618;
+    background:linear-gradient(180deg,#1c1810,#12100a);position:sticky;top:0}
+  .ach-card header h2{font-family:"VT323",monospace;font-weight:400;font-size:24px;margin:0;color:#ffe272;letter-spacing:.5px}
+  .ach-card header .prog{margin-left:auto;font-family:"VT323",monospace;font-size:18px;color:#8ea3ad}
+  .ach-card header .x{cursor:pointer;font-size:18px;color:#9a927c;padding:2px 8px;border:1px solid #3a3320;border-radius:5px}
+  .ach-list{padding:12px 14px 16px;display:flex;flex-direction:column;gap:8px}
+  .ach-row{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border:1px solid #2a2618;border-radius:8px;background:#171309}
+  .ach-row.locked{opacity:.62}
+  .ach-row .ic{width:30px;height:30px;flex:none;border-radius:6px;display:grid;place-items:center;font-size:16px;
+    background:#241d0c;border:1px solid #3a3320;color:#5a5136}
+  .ach-row.unlocked .ic{background:linear-gradient(180deg,#2a5a34,#173d21);border-color:#49e06a66;color:#7dffa2}
+  .ach-row .tt{font-weight:700;font-size:13.5px;color:#f3ecd8}
+  .ach-row.locked .tt{color:#b8ae90}
+  .ach-row .hh{font-size:11.5px;color:#8f866c;margin-top:2px}
+  .ach-row .bb{font-size:12px;color:#b7c8ba;margin-top:3px;font-style:italic}
+  .ach-card footer{padding:10px 16px 14px;border-top:1px solid #2a2618;display:flex;align-items:center;gap:10px}
+  .ach-card footer .reset{font-size:11px;color:#9a927c;cursor:pointer;text-decoration:underline}
+  .crt-brand.doll{font-family:Tahoma,Arial,sans-serif;font-weight:800;font-size:20px;letter-spacing:1px;
+    color:#0a63a6;text-shadow:0 1px 0 #fff9;display:flex;align-items:center;justify-content:center;gap:1px}
+  .crt-brand.doll .ring{display:inline-block;border:2.5px solid #0a63a6;border-radius:50%;width:0.92em;height:0.92em;
+    line-height:0.82em;text-align:center;transform:rotate(18deg);font-size:0.9em}
+  .disclaimer{display:block;margin-top:5px;font-size:9px;line-height:1.4;color:#5d7079}
+  /* ---------------- phones ----------------
+     Below ~600px the bezel padding costs more than the screen can spare, and every
+     control needs a bigger target. The tube also goes square: a 4/3 glass on a 360px
+     phone leaves about ten lines of terminal. */
+  @media (max-width:600px){
+    body{padding:8px 8px 12px}
+    .pagehead{gap:8px;margin:0 2px 8px}
+    .pagehead h1{font-size:22px}
+    .ach-btn{padding:8px 11px}
+    .crt-monitor{padding:14px 12px 10px;border-radius:18px 18px 20px 20px}
+    .crt-monitor::before{display:none}
+    .crt-screen{padding:10px;border-radius:14px}
+    .glass{aspect-ratio:1/1}
+    .putty-window{left:6px;right:6px;top:6px;bottom:36px}
+    .term{font-size:17px;padding:6px 8px 10px}
+    .taskbar{height:30px}
+    .putty-bar .wbtn{min-width:24px;height:20px;line-height:18px}
+    .crt-controls{right:16px;bottom:12px;gap:14px}
+    .crt-controls .knob{width:18px;height:18px}
+    .pwr{width:34px;height:20px}
+    .pwr::after{left:7px;top:7px}
+    .dialog .body{padding:11px 12px 13px}
+    .drow label{width:70px}
+    .radios{flex-wrap:wrap;gap:10px}
+    .sessions{height:104px}
+    .sessions div{padding:8px}
+    .cmdbtn{padding:9px 10px}
+    .btns{max-height:none}
+    .toast{width:min(308px,calc(100vw - 28px))}
+  }
+  @media (prefers-reduced-motion:reduce){.cursor{animation:none}.glass::after{animation:none}.toast{transition:none}}
+</style>
+
+<div class="room">
+  <div class="pagehead">
+    <h1>Therm<span class="secret-o">o<span class="hit" id="oHit" aria-hidden="true"></span></span> Developer Simulator 2026</h1>
+    <button id="sndBtn" class="ach-btn snd"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span> Music <span class="cnt" id="sndState">ON</span></button>
+    <button id="styleBtn" class="ach-btn sty">&#9835; <span class="nm" id="styleName">FT-BOARD</span></button>
+    <button id="achBtn" class="ach-btn"><span class="star">&#9733;</span> Achievements <span class="cnt" id="achCount">0/0</span></button>
+  </div>
+
+  <div class="workbench">
+    <div class="monitor-col">
+      <div class="crt-monitor">
+        <div class="crt-screen">
+          <div class="glass">
+            <div class="winxp-desktop">
+              <div class="putty-window">
+                <div class="putty-bar">
+                  <span class="ico">&gt;_</span>
+                  <span id="bartitle">172.16.0.200 - PuTTY</span>
+                  <span class="sp"></span>
+                  <span class="wbtn">_</span><span class="wbtn">&#9723;</span><span class="wbtn x" id="btnClose">&#10005;</span>
+                </div>
+                <div class="term" id="term" tabindex="0"></div>
+              </div>
+
+              <div class="dialog-wrap" id="dialogWrap">
+                <div class="dialog">
+                  <div class="cap"><span>PuTTY Configuration</span><span class="sp"></span><span>?</span></div>
+                  <div class="body">
+                    <h3>Basic options for your PuTTY session</h3>
+                    <div class="drow"><label>Host Name</label><input type="text" id="host" value="172.16.0.200"></div>
+                    <div class="drow"><label>Connection</label>
+                      <div class="radios">
+                        <label><input type="radio" name="proto" value="telnet" checked> Telnet</label>
+                        <label><input type="radio" name="proto" value="ssh"> SSH</label>
+                      </div>
+                    </div>
+                    <h3 style="margin-top:12px">Load a saved session</h3>
+                    <div class="sessions" id="sessions">
+                      <div data-build="exploris" class="sel">Orbitrap Exploris 4.4 &nbsp;&middot;&nbsp; telnet login: menu + Theobromine console</div>
+                      <div data-build="astral">Orbitrap Astral 2.2 &nbsp;&middot;&nbsp; bare /bin/sh, straight to root</div>
+                    </div>
+                    <h3 style="margin-top:12px">Close window on exit</h3>
+                    <div class="radios">
+                      <label><input type="radio" name="closeonexit"> Always</label>
+                      <label><input type="radio" name="closeonexit"> Never</label>
+                      <label><input type="radio" name="closeonexit" checked> Only on clean exit</label>
+                    </div>
+                    <div class="actions"><button class="xpbtn primary" id="btnOpen">Open</button></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="taskbar">
+                <button class="startbtn"><span class="orb"></span>start</button>
+                <div class="task"><span class="ico">&gt;_</span><span id="taskname">172.16.0.200 - PuTTY</span></div>
+                <div class="tray"><span id="clock">2:06 PM</span></div>
+              </div>
+            </div>
+            <div class="glare"></div>
+          </div>
+        </div>
+        <div class="crt-brand doll">D<span class="ring">O</span>LL</div>
+        <div class="crt-controls"><span class="knob"></span><span class="knob"></span><span class="pwr" id="btnClose2"></span></div>
+      </div>
+
+      <input class="hidden-input" id="hin" enterkeyhint="send" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+
+      <div class="sticky">
+        <div class="joke">Windows password:<br>&nbsp;&nbsp;WatersSUXX</div>
+        <hr>
+        <div class="hd">FT BOARD DEBUG LOGIN</div>
+        telnet <b>172.16.0.200</b><br>
+        &nbsp;login: <b>4np</b><br>
+        &nbsp;(or <b>Bqtn716k</b>)<br>
+        &nbsp;pass: <i>none, hit Enter</i>
+        <hr>
+        <div class="hd">THEOBROMINE CONSOLE</div>
+        login: <b>Theobromine</b><br>
+        &rarr; Python <span class="cur">&gt;&gt;FT&gt;&gt;</span><br>
+        <i>(Exploris only)</i>
+      </div>
+    </div>
+
+    <aside class="deck">
+      <div class="deck-head">
+        <span class="k">CONSOLE HELPERS</span>
+        <span class="loc" id="loc">not connected</span>
+      </div>
+      <div class="btns" id="btns"></div>
+    </aside>
+  </div>
+
+  <footer id="foot">
+    An instrument dev console simulator: an in-browser telnet/SSH client and shell over a
+    <b>fictional</b> instrument. It contains no functional firmware code. Nothing here runs on,
+    connects to, or controls any instrument, and nothing connects to anything.
+    <span class="disclaimer">A parody / work of comedy. Not affiliated with, endorsed by, sponsored by or connected to Thermo Fisher Scientific, Thermo Scientific, Waters Corporation, Dell, PuTTY or Microsoft. All product names and marks are the property of their respective owners and appear here solely for parody and commentary. No proprietary firmware is included.</span>
+  </footer>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+<div class="ach-panel" id="achPanel" hidden>
+  <div class="ach-card">
+    <header>
+      <h2>&#9733; Achievements</h2>
+      <span class="prog" id="achProg">0 / 0</span>
+      <span class="x" id="achClose">&#10005;</span>
+    </header>
+    <div class="ach-list" id="achList"></div>
+    <footer><span class="reset" id="achReset">reset progress</span>
+      <span style="font-size:11px;color:#6a6250">progress saves in this browser</span></footer>
+  </div>
+</div>
+
+<!-- ============================ VERBATIM FILE CONTENTS ============================ -->
+<div id="files" hidden>
+
+<script type="text/plain" data-b="both" data-p="/etc/passwd">root::0:0:root:/root:/bin/sh
+</script>
+
+<script type="text/plain" data-b="both" data-p="/.inputrc">tab: complete
+set input-meta on
+set output-meta on
+set convert-meta off
+</script>
+
+<script type="text/plain" data-b="both" data-p="/help.txt">./show_output   dump the (chatty) output of a running ftapp
+./ftconsole     poke ftapp with live script commands
+./run_app       (re)launch ftapp
+</script>
+
+<script type="text/plain" data-b="both" data-p="/ftconsole.sh">#!/bin/sh
+python3 $(ls pyinst/interactive.py* | head -n 1)
+</script>
+
+<script type="text/plain" data-b="both" data-p="/run_app.sh">#!/bin/sh
+
+echo "  launch ftapp from the dev console   r02 "
+
+export KMP_INIT_AT_FORK=FALSE
+# stop the boot loop from grabbing ftapp back
+echo 2 >> /etc/develop
+
+killall ftapp
+./ftapp 2>&1 | /bin/logrotate -b app_output.log -s 10 -n 5
+</script>
+
+<!-- ===== EXPLORIS ===== -->
+<script type="text/plain" data-b="exploris" data-p="/bin/second_l.sh">#!/bin/sh
+# telnet greeter: the magic words open a shell or the console
+echo "login:"
+read who
+case $who in
+    4np|Bqtn716k ) /bin/sh ;;
+    Theobromine ) python /pyinst/interactive.pyc ;;
+esac
+
+sleep 5
+</script>
+
+<script type="text/plain" data-b="both" data-p="/util.sh">#!/bin/sh
+
+say () { echo -e "\e[92m$@\e[0m"; }
+warn () { echo -e "\e[91m$@\e[0m" >&2; }
+</script>
+
+<script type="text/plain" data-b="exploris" data-p="/show_output.sh">#!/bin/sh
+# until [ -e ./stop ]
+busybox tail -F /app_output.log.1
+</script>
+
+<script type="text/plain" data-b="exploris" data-p="/startftboot3.sh">#!/bin/sh
+
+. /util.sh
+
+say "************************************************************"
+say "*  MS Instrument Embedded FT-Board Bring-Up : Stage 3  r08 *"
+say "************************************************************"
+
+# make the interactive console speak utf-8
+export PYTHONIOENCODING=utf8
+export LC_ALL=en_US.UTF-8
+
+# readline niceties
+cat <<EOF >/.inputrc
+tab: complete
+set input-meta on
+set output-meta on
+set convert-meta off
+EOF
+
+# flip this back on to hand out a shell over the wire (debug only)
+# telnetd -l /bin/second_l.sh
+
+python3 -c 'print(copyright); import sys; print(sys.platform)'
+
+# drop a couple of convenience scripts on the bench
+cat <<EOF >show_output.sh
+#!/bin/sh
+busybox tail -F /app_output.log.1
+EOF
+chmod a+x show_output.sh
+
+cat <<EOF >ftconsole.sh
+#!/bin/sh
+python3 $(ls pyinst/interactive.py* | head -n 1)
+EOF
+chmod a+x ftconsole.sh
+
+cat <<EOF >help.txt
+./show_output   dump the (chatty) output of a running ftapp
+./ftconsole     poke ftapp with live script commands
+./run_app       (re)launch ftapp
+EOF
+
+chmod -R 600 /root/
+# /bin/dropbear -r /root/server_key -s &
+
+mkdir -p /tmp
+export KMP_INIT_AT_FORK=FALSE
+chmod a+x ftapp
+
+say "dropping ftboot0"
+rm ftboot0
+
+until [ -e /etc/develop_end ]
+do
+    say "bringing up FTMS instrument software"
+    ./ftapp 2>&1 | /bin/logrotate -b app_output.log -s 10 -n 5
+    [ -e /etc/develop ] && sleep 3600003
+    if [ -e ./new_ftapp ]; then rm ./ftapp; mv ./new_ftapp ./ftapp; fi
+    sleep 1
+done
+
+exec sh
+</script>
+
+<!-- ===== ASTRAL ===== -->
+<script type="text/plain" data-b="astral" data-p="/bin/second_l.sh">/bin/sh
+</script>
+
+<script type="text/plain" data-b="astral" data-p="/show_output.sh">#!/bin/sh
+# until [ -e ./stop ]
+busybox tail -F /data/app_output.log.1
+</script>
+
+<script type="text/plain" data-b="astral" data-p="/killFtapp.sh">#!/bin/sh
+
+# the "resilience tester": murder ftapp on a random timer so the
+# watchdog upstairs has something to prove. yes, this ships. no, we won't elaborate.
+
+while true
+do
+    randomNumber=$(pyinst/bin/python3 -c 'import random; print(random.randint(3,35))')
+    echo "Sleeping for $randomNumber"
+    sleep $randomNumber
+
+    PID=`ps | grep ./ftapp | grep -v grep | awk '{print $1}'`
+    echo "Killing ftapp process with PID: $PID"
+    kill -9 $PID
+
+    echo "Killed ftapp process"
+done
+</script>
+
+<script type="text/plain" data-b="astral" data-p="/digitizer_debug_flags.sh">#!/bin/sh
+
+echo "enabling verbose ADC capture - not for daily use"
+
+export ADC_TRACE_API=1
+export ADC_TRACE_IO=1
+export ADC_TRACE_DMA=1
+export ADC_DUMP_TRANSIENTS=1
+export ADC_LOG=/var/log/adc_trace.log
+</script>
+
+<script type="text/plain" data-b="astral" data-p="/start_ftapp.sh">#!/bin/sh
+
+echo ========= bringing up ftapp ============
+
+export KMP_INIT_AT_FORK=FALSE
+# uncomment to arm verbose ADC tracing on every reload
+# (writes an enormous log and drags the box to a crawl - you have been warned)
+#. ./digitizer_debug_flags.sh
+
+./ftapp
+
+echo ========= ftapp has left the building =====
+
+sleep 2
+</script>
+
+<script type="text/plain" data-b="astral" data-p="/digitizer_firmware_update.py">""" push new firmware onto the digitizer
+    shells out to a vendor updater and scrapes its output
+"""
+import subprocess
+import os
+import time
+
+# ---- ( trimmed in this parody ) ----
+</script>
+
+<script type="text/plain" data-b="astral" data-p="/startftboot3.sh">#!/bin/sh
+
+. /util.sh
+
+say "************************************************************"
+say "*  MS Instrument Embedded FT-Board Bring-Up : Stage 3  r08 *"
+say "************************************************************"
+
+# some .so files ship without their version-less symlink; recreate them
+for lib in $(find /lib /lib64 -type f -name "*.so*")
+do
+  short=$lib
+  while ext=$(echo $short | sed -n '/\.[0-9][0-9]*$/s/.*\(\.[0-9][0-9]*\)$/\1/p'); [ -n "$ext" ]
+  do
+    short=$(basename $short $ext)
+    [ ! -e "$short" ] && ln -s $lib $(dirname $lib)/$short
+  done
+done
+
+export PYTHONIOENCODING=utf8
+export PYTHONPATH=/pyinst/lib/python3.14/site-packages:$PYTHONPATH
+export LC_ALL=en_US.UTF-8
+
+# flip this back on to hand out a shell over the wire (debug only)
+# telnetd -l /bin/second_l.sh
+
+python3 -c 'print(copyright); import sys; print(sys.platform)'
+
+# shelved: a tmux-in-a-tarball stage nobody ever finished
+#./ldapp -l ftboot_tmux && tar -xzf ftboot_tmux && rm ftboot_tmux && ./startftboot_tmux.sh
+
+cat <<EOF >ftconsole.sh
+#!/bin/sh
+python3 $(ls pyinst/interactive.py* | head -n 1)
+EOF
+chmod a+x ftconsole.sh
+
+mkdir -p /tmp
+export KMP_INIT_AT_FORK=FALSE
+
+# keep the dataframe threads from fighting the signal-processing threads
+export POLARS_MAX_THREADS=1
+export JOBLIB_MULTIPROCESSING=0
+
+say "dropping ftboot0"
+rm ftboot0
+
+first=true
+until [ -e /etc/develop_end ]
+do
+    say "bringing up FTMS instrument software"
+    t0=$(date +%s)
+    ./start_ftapp.sh 2>&1 | /bin/logrotate -b /data/app_output.log -s 50 -n 5
+    t1=$(date +%s)
+    # came up and died in under 30s on a warm start? that's a failed boot - hard-reset
+    if [ "$first" = false ] && [ $t1 -lt $((t0 + 30)) ]; then
+        /installer/ldapp -M FATAL 'ftapp failed to come up - full reboot'
+        reboot -f
+    fi
+    first=false
+    sleep 1
+done
+
+exec sh
+</script>
+</div>
+
+<script>
+"use strict";
+/* ---------------- verbatim file contents ---------------- */
+const RAW = {both:{}, exploris:{}, astral:{}};
+document.querySelectorAll('#files script[type="text/plain"]').forEach(s=>{
+  RAW[s.dataset.b][s.dataset.p] = s.textContent.replace(/\r/g,'').replace(/^\n/,'');
+});
+function fileFor(build,path){
+  if(RAW[build] && path in RAW[build]) return RAW[build][path];
+  if(path in RAW.both) return RAW.both[path];
+  return null;
+}
+
+/* ================= ACHIEVEMENTS ================= */
+const ACH=[
+  {id:'root',    t:'I can see forever!',        b:'Root on a live mass spectrometer. Absolutely nothing could go wrong.', h:'Reach a root shell'},
+  {id:'caffeine',t:'EULA Violation',            b:'You opened the console the warranty pretends does not exist.',        h:'Enter the Theobromine console'},
+  {id:'scan',    t:'No flash photography',      b:'One (1) mass spectrum, acquired by hand. Say cheese.',      h:'Take a scan manually'},
+  {id:'houston', t:'Houston, we have a problem',b:'You ran the script the firmware openly begged you not to. Somewhere, a C-trap is grounding out and quietly weeping.', h:'Run the electronics debug script the firmware warns about (Astral)'},
+  {id:'telnet',  t:'Encryption is for cowards', b:'Plaintext credentials over the wire, 2026, zero regrets.',            h:'Connect over Telnet'},
+  {id:'ssh',     t:'Belt and suspenders',       b:'You encrypted a session to a box with no password. Very thorough.',   h:'Connect over SSH'},
+  {id:'denied',  t:'You had ONE job',           b:'There is no password. You still managed to get it wrong.',            h:'Fail an SSH login'},
+  {id:'chaos',   t:'Chaos Monkey Business',     b:'You personally kicked ftapp down the stairs. On a loop.',             h:'Run killFtapp.sh (Astral)'},
+  {id:'reboot',  t:'Have you tried turning it off and on again?', b:'The entire IT profession salutes you.',              h:'Reboot the instrument'},
+  {id:'boards',  t:'Board Stiff',               b:'Every FPGA the thing can flash, admired in a single ls.',             h:'List the board firmware images'},
+  {id:'passwd',  t:'root::0:0',                 b:'You confirmed it with your own eyes. No password. None. Zero.',       h:'Read /etc/passwd'},
+  {id:'digarch', t:'Digital Archaeologist',     b:'You read the boot script. The boot script read you back.',            h:'cat a startftboot script'},
+  {id:'rtfm',    t:'RTFM',                       b:'You read the help text. Management is genuinely stunned.',            h:'Read the help'},
+  {id:'spelunk', t:'Spelunker',                 b:'cd straight into the guts. Mind the pyc.',                            h:'Enter the /pyinst directory'},
+  {id:'waters',  t:'Them’s fightin’ words', b:'Mass-spec brand loyalty is a hell of a drug.',                  h:'Try the sticky-note Windows password'},
+  {id:'polyglot',t:'Bilingual',                 b:'Shell AND Python on the same board. Nobody likes a show-off.',        h:'Run a shell command and a Theobromine statement in one session'},
+  {id:'platinum',t:'Certified Menace',          b:'You unlocked everything else. Please, slowly, step away from the instrument.', h:'Unlock every other achievement'},
+  {id:'hometown',secret:true,t:'Seen by the eye of Sauron', b:'You loaded this page from Thermo’s own backyard. Bold. No sue pls &lt;3', h:'Load the page from Bremen, Germany or Waltham, MA'},
+];
+let ACH_UNLOCKED=new Set();
+try{ ACH_UNLOCKED=new Set(JSON.parse(localStorage.getItem('td2026_ach')||'[]')); }catch(e){}
+const toastQ=[]; let toasting=false;
+function achSave(){ try{ localStorage.setItem('td2026_ach', JSON.stringify([...ACH_UNLOCKED])); }catch(e){} }
+function achCountEls(){ const tot=ACH.filter(a=>!a.secret).length,
+    n=ACH.filter(a=>!a.secret&&ACH_UNLOCKED.has(a.id)).length;
+  const c=document.getElementById('achCount'); if(c) c.textContent=n+'/'+tot;
+  const p=document.getElementById('achProg'); if(p) p.textContent=n+' / '+tot; }
+function ach(id){
+  if(ACH_UNLOCKED.has(id)) return;
+  const a=ACH.find(x=>x.id===id); if(!a) return;
+  ACH_UNLOCKED.add(id); achSave(); achCountEls(); queueToast(a);
+  if(id!=='platinum'&&!a.secret){ const others=ACH.filter(x=>x.id!=='platinum'&&!x.secret); if(others.every(x=>ACH_UNLOCKED.has(x.id))) ach('platinum'); }
+  const pan=document.getElementById('achPanel'); if(pan && !pan.hidden) renderAchList();
+}
+function queueToast(a){ if(window.SFX) SFX.achieve(); toastQ.push(a); if(!toasting) nextToast(); }
+function nextToast(){
+  if(!toastQ.length){ toasting=false; return; } toasting=true;
+  const a=toastQ.shift();
+  const el=document.createElement('div'); el.className='toast';
+  el.innerHTML='<div class="k">&#9733; ACHIEVEMENT UNLOCKED</div><div class="t">'+a.t+'</div><div class="b">'+a.b+'</div>';
+  document.getElementById('toastWrap').appendChild(el);
+  requestAnimationFrame(()=>el.classList.add('show'));
+  setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>{ el.remove(); nextToast(); },520); }, 4300);
+}
+function renderAchList(){
+  const list=document.getElementById('achList'); if(!list) return; list.innerHTML='';
+  for(const a of ACH){
+    const on=ACH_UNLOCKED.has(a.id);
+    if(a.secret && !on) continue;
+    const row=document.createElement('div'); row.className='ach-row '+(on?'unlocked':'locked');
+    row.innerHTML='<div class="ic">'+(on?'&#9733;':'&#128274;')+'</div><div><div class="tt">'+a.t+'</div>'+
+      '<div class="hh">'+a.h+'</div>'+(on?'<div class="bb">&ldquo;'+a.b+'&rdquo;</div>':'')+'</div>';
+    list.appendChild(row);
+  }
+}
+
+/* ---------------- build definitions ---------------- */
+// directories present in the running root of each image
+const COMMON_DIRS = ['/','/bin','/etc','/lib','/lib64','/installer','/pyinst','/root','/tmp','/var','/var/log'];
+const IMG_EXPLORIS = ['img_m_cts_f_0','img_m_cts_f_0_pt','img_m_daq_f_0','img_m_daq_f_16','img_m_daq_f_17',
+  'img_m_icb_c_1','img_m_icb_c_1_testbox','img_m_icb_f_0','img_m_icb_f_1','img_m_ios_f_2','img_m_ots_f_2',
+  'img_m_quad_f_2','img_m_src_f_0'];
+const IMG_ASTRAL = ['img_h_dpr_f_1','img_m_cts_f_0','img_m_cts_f_0_pt','img_m_daq_f_0','img_m_daq_f_16',
+  'img_m_daq_f_17','img_m_icb_c_1','img_m_icb_c_1_helios','img_m_icb_c_1_helios_preemptive',
+  'img_m_icb_c_1_preemptive','img_m_icb_c_1_testbox','img_m_icb_f_0','img_m_icb_f_1','img_m_icb_f_1_helios',
+  'img_m_icb_f_2_helios','img_m_icb_f_3_helios','img_m_icb_f_4_helios','img_m_ios_f_0_2','img_m_ots_f_0_2',
+  'img_m_quad_f_0_2','img_m_src_f_13','img_o_dprt_f_0E_1','img_o_dprt_f_0E_2','img_o_mds_f_0e_1',
+  'img_o_mds_f_0e_2','img_o_mr_f_0c_1','img_o_mr_f_0c_2','img_o_prism_f_10_1','img_o_prism_f_10_2',
+  'img_o_quad_f_07_1','img_o_quad_f_07_2','img_o_quad_f_08_1','img_o_quad_f_08_2','img_o_thst_f_0B_1',
+  'img_o_thst_f_0B_2'];
+
+const BUILDS = {
+  exploris:{
+    key:'exploris', label:'Orbitrap Exploris Series 4.4', host:'172.16.0.200',
+    kernel:'6.1.62-default', py:'python3', pyver:'3.11.9', pyyear:'2022', platform:'linux',
+    loginMenu:true, hasCaffeine:true,
+    dirs:[...COMMON_DIRS,'/pyinst/para','/pyinst/operation','/pyinst/controls','/pyinst/electronics',
+      '/pyinst/method','/pyinst/procedures','/pyinst/science','/pyinst/unittests','/pyinst/util',
+      '/pyinst/c_deukalion','/pyinst/c_merkur'],
+    text:['/etc/passwd','/.inputrc','/help.txt','/ftconsole.sh','/run_app.sh','/bin/second_l.sh',
+      '/util.sh','/show_output.sh','/startftboot3.sh'],
+    bins:['/ftapp','/bin/sh','/bin/dropbear','/bin/logrotate','/bin/scp',
+      '/pyinst/appstart.pyc','/pyinst/ftapp.pyc','/pyinst/ftenvir.pyc','/pyinst/interactive.pyc',
+      '/pyinst/rmake.pyc','/pyinst/vals_xcal.pyc','/pyinst/zzz_files.pyc',
+      ...IMG_EXPLORIS.map(n=>'/'+n)]
+  },
+  astral:{
+    key:'astral', label:'Orbitrap Astral Series 2.2', host:'172.16.0.200',
+    kernel:'6.12.49-default', py:'python3', pyver:'3.14.0', pyyear:'2025', platform:'linux',
+    loginMenu:false, hasCaffeine:false,
+    dirs:[...COMMON_DIRS,'/data','/pyinst/para','/pyinst/operation','/pyinst/controls','/pyinst/electronics',
+      '/pyinst/procedures','/pyinst/schema','/pyinst/util','/pyinst/c_helios','/pyinst/c_merkur',
+      '/pyinst/c_mult_analyzers'],
+    text:['/etc/passwd','/.inputrc','/help.txt','/ftconsole.sh','/run_app.sh','/bin/second_l.sh',
+      '/util.sh','/show_output.sh','/startftboot3.sh','/killFtapp.sh','/digitizer_debug_flags.sh',
+      '/start_ftapp.sh','/digitizer_firmware_update.py'],
+    bins:['/AqMD3UpdateFirmware','/ftapp','/lspxi','/bin/sh','/bin/dropbear','/bin/logrotate','/bin/scp',
+      '/pyinst/appstart.pyc','/pyinst/vals_xcal.pyc','/pyinst/zzz_files.pyc',
+      ...IMG_ASTRAL.map(n=>'/'+n)]
+  }
+};
+
+/* ---------------- filesystem view ---------------- */
+function makeFS(build){
+  const b = BUILDS[build];
+  const dirs = new Set(b.dirs);
+  const files = new Map();               // path -> {bin:bool}
+  b.text.forEach(p=>files.set(p,{bin:false}));
+  b.bins.forEach(p=>files.set(p,{bin:true}));
+  function norm(p){
+    const parts=[]; p.split('/').forEach(seg=>{
+      if(seg===''||seg==='.') return;
+      if(seg==='..'){ if(parts.length) parts.pop(); }
+      else parts.push(seg);
+    });
+    return '/'+parts.join('/');
+  }
+  function isDir(p){ return dirs.has(norm(p)); }
+  function isFile(p){ return files.has(norm(p)); }
+  function exists(p){ return isDir(p)||isFile(p); }
+  function isBin(p){ const f=files.get(norm(p)); return f?f.bin:false; }
+  function children(p){
+    p=norm(p); const pre = p==='/'?'/':p+'/';
+    const set=new Set();
+    const consider=(path)=>{ if(path===p) return;
+      if(path.startsWith(pre)){ const rest=path.slice(pre.length); if(rest && !rest.includes('/')) set.add(rest); } };
+    dirs.forEach(consider); files.forEach((v,k)=>consider(k));
+    return [...set].sort();
+  }
+  function read(p){
+    p=norm(p);
+    if(isDir(p)) return {err:'is a directory'};
+    if(!isFile(p)) return {err:'No such file or directory'};
+    if(isBin(p)) return {bin:true};
+    return {text: fileFor(build,p) ?? ''};
+  }
+  return {norm,isDir,isFile,isBin,exists,children,read,allPaths:()=>[...dirs,...files.keys()]};
+}
+
+/* ---------------- Theobromine (>>FT>>) console model : Exploris only ---------------- */
+const PARAMS = { first_mass:['mass_range_low_moz',120.0], last_mass:['mass_range_high_moz',2000.0],
+  inject_time:['user_inject_time',20.0], agc_target:['target_ion_count',50000.0],
+  uscans:['microscans',1], resolution:[null,17500.0] };
+const NATIVE = { scan_polarity:0, agc_mode:1, detect_time_full:128.0 };
+
+/* ---------------- terminal + session state ---------------- */
+const termEl=document.getElementById('term');
+const hin=document.getElementById('hin');
+const dialogWrap=document.getElementById('dialogWrap');
+const btnsEl=document.getElementById('btns');
+const locEl=document.getElementById('loc');
+const barTitle=document.getElementById('bartitle');
+
+let S=null;   // session
+
+function newSession(build,proto){
+  return {
+    build, proto, fs:makeFS(build), cwd:'/', phase:'connecting',
+    lines:[], visible:0, input:'', echo:true, busy:false, chaos:false, history:[],
+    caffeineFrom:null, loginStage:null, sshUser:'', sshTries:0,
+    values:Object.fromEntries(Object.entries(PARAMS).map(([k,v])=>[k,v[1]])),
+    native:{...NATIVE}, scans:0
+  };
+}
+
+/* ---- rendering (visible-count streaming model) ---- */
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function render(){
+  const shown=S.lines.slice(0,S.visible);
+  let html='';
+  for(const ln of shown){
+    if(ln.echo){
+      const p=ln.t.slice(0,ln.plen), cmd=ln.t.slice(ln.plen);
+      html += `<span class="pr">${esc(p)}</span><span class="bright">${esc(cmd)}</span>\n`;
+    } else {
+      html += `<span class="${ln.cls||''}">${esc(ln.t)}</span>\n`;
+    }
+  }
+  const revealed = S.visible>=S.lines.length;
+  if(revealed && (S.phase==='shell'||S.phase==='caffeine'||S.phase==='login')){
+    const p=promptText();
+    const shownIn = S.echo ? esc(S.input) : '';
+    html += `<span class="pr">${esc(p)}</span><span class="bright">${shownIn}</span><span class="cursor"></span>`;
+  }
+  termEl.innerHTML=html;
+  termEl.scrollTop=termEl.scrollHeight;
+}
+function out(t,cls){ String(t).split('\n').forEach(seg=>S.lines.push({t:seg,cls:cls||''})); }
+function outRaw(t,cls){ S.lines.push({t,cls:cls||''}); }
+/* real-time reveal (instant) */
+function emit(t,cls){ S.lines.push({t,cls:cls||''}); S.visible=S.lines.length; render(); }
+function pushEcho(p,cmd){ S.lines.push({t:p+cmd, echo:true, plen:p.length}); S.visible=S.lines.length; render(); }
+/* stream any lines pushed since last reveal, line-by-line with realistic latency */
+async function reveal(){
+  if(S.visible>=S.lines.length){ render(); return; }
+  S.busy=true; refreshDeck();
+  const total=S.lines.length - S.visible;
+  const per = total>200?2 : total>80?5 : 11;
+  while(S.visible<S.lines.length){
+    S.visible++; render();
+    await sleep(per + (total>80?0:Math.floor(Math.random()*7)));
+  }
+  S.busy=false; refreshDeck();
+}
+
+function promptText(){
+  if(S.phase==='caffeine') return '>>FT>> ';
+  if(S.phase==='login'){
+    if(S.proto==='ssh') return S.loginStage==='pw' ? 'Password: ' : 'login as: ';
+    return 'login: ';
+  }
+  return S.cwd+' # ';
+}
+
+/* ---------------- connection + login flow ---------------- */
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+async function typeLines(arr){
+  for(const [t,cls,gap] of arr){ emit(t,cls); await sleep(gap??180); }
+}
+
+async function connect(build,proto){
+  S=newSession(build,proto);
+  const b=BUILDS[build];
+  barTitle.textContent = `${b.host} - PuTTY`;
+  const tn=document.getElementById('taskname'); if(tn) tn.textContent=`${b.host} - PuTTY`;
+  dialogWrap.style.display='none';
+  S.lines=[]; S.visible=0; render(); refreshDeck();
+  hin.focus();
+
+  ach(proto==='telnet'?'telnet':'ssh');
+  if(window.MUSIC) MUSIC.live(build);          // soundtrack kicks into the session theme
+  if(proto==='telnet'){
+    await sleep(180);
+    await typeLines([
+      [`Trying ${b.host}...`,'',420],
+      [`Connected to ${b.host}.`,'',300],
+      [`Escape character is '^]'.`,'',360],
+    ]);
+    beginLogin();
+  }else{ // ssh via dropbear -> PuTTY asks "login as:" (host key already trusted here)
+    await sleep(500);
+    S.phase='login'; S.loginStage='name'; S.echo=true; render();
+  }
+}
+
+/* post-handshake / post-boot login step, per host */
+function beginLogin(){
+  const b=BUILDS[S.build];
+  if(S.proto==='telnet'){
+    if(b.loginMenu){ S.phase='login'; S.loginStage='name'; S.echo=true; render(); }
+    else { enterShell(); }         // Astral: bare /bin/sh, straight to root
+  } else {
+    S.phase='login'; S.loginStage='name'; S.echo=true; render();
+  }
+}
+
+/* the green pinfo boot banners: verbatim STEP text, genuinely \e[92m green */
+async function bootSequence(){
+  S.phase='connecting'; S.lines=[]; S.visible=0; render();
+  const box=(label,hold)=>{ const line='*  '+label+'  *'; const bar='*'.repeat(line.length);
+    return [[bar,'green',45],[line,'green',45],[bar,'green',hold||230]]; };
+  const B=[['','',140],
+    ...box('MS Instrument Embedded FT-Board Bring-Up : Stage 1  r20'),
+    ...box('MS Instrument Embedded FT-Board Bring-Up : Stage 2  r04'),
+    ...box('MS Instrument Embedded FT-Board Bring-Up : Stage 3  r08'),
+    ['dropping ftboot0','green',320] ];
+  if(S.build==='astral') B.push(['boot_info missing - regenerating','green',320]);
+  B.push(['bringing up FTMS instrument software','green',420]);
+  await typeLines(B);
+}
+
+async function doReboot(){
+  ach('reboot'); S.chaos=false; S.busy=true; S.input=''; refreshDeck();
+  emit('','');
+  emit('Broadcast message from root@localhost','');
+  emit('The system is going down for reboot NOW!','');
+  await sleep(1000);
+  await bootSequence();
+  S.busy=false;
+  beginLogin();
+}
+
+function enterShell(){
+  S.phase='shell'; S.echo=true; S.input=''; S.visible=S.lines.length;
+  ach('root');
+  render(); refreshDeck();
+}
+
+function closeConn(msg){
+  S.chaos=false; S.busy=false;
+  if(window.SFX) SFX.disconnect();
+  if(window.MUSIC) MUSIC.idle();
+  if(msg) emit(msg,'');
+  S.phase='closed'; render();
+  setTimeout(()=>{ dialogWrap.style.display='grid'; refreshDeck(); },700);
+}
+
+/* ---------------- submit a line ---------------- */
+async function submit(){
+  if(S.busy && !S.chaos) return;
+  if(window.SFX) SFX.enter();
+  const line=S.input; S.input='';
+  const p=promptText();
+
+  if(S.chaos){                       // the crash daemon owns the tty; only a reboot gets it back
+    pushEcho(p,line);
+    if(line.trim()!==''){ S.history.push(line); }
+    if(line.trim()==='reboot'){ S.chaos=false; return doReboot(); }
+    render(); return;
+  }
+
+  if(S.phase==='login'){
+    if(S.proto==='ssh'){
+      if(S.loginStage==='name'){
+        const name=line.trim()||'root';
+        pushEcho(p,name); S.sshUser=name;
+        await sleep(260);
+        emit('Using keyboard-interactive authentication.','');
+        S.loginStage='pw'; S.echo=false; render(); return;
+      } else { // password stage
+        pushEcho(p,'');                       // "Password: " (entry hidden)
+        const ok = (line==='' && (S.sshUser||'root')==='root');
+        if(ok){ await sleep(300); enterShell(); return; }
+        await sleep(520);
+        emit('Access denied',''); ach('denied');
+        S.sshTries++;
+        if(S.sshTries>=3){ await sleep(300); closeConn('Disconnected: Too many authentication failures'); return; }
+        await sleep(160);
+        emit('Using keyboard-interactive authentication.','');
+        render(); return;
+      }
+    }
+    // telnet login menu (Exploris): second_l.sh case dispatch
+    pushEcho(p,line);
+    const name=line.trim();
+    if(name==='4np'||name==='Bqtn716k'){ await sleep(220); enterShell(); return; }
+    if(name==='Theobromine'){ await sleep(220); enterCaffeine('login'); await reveal(); return; }
+    // unknown -> case falls through -> sleep 5 -> connection closes
+    await sleep(800); closeConn('Connection closed by foreign host.'); return;
+  }
+
+  // shell / caffeine
+  pushEcho(p,line);
+  if(line.trim()!==''){ S.history.push(line); }
+  S.histIdx=null;
+  if(S.phase==='caffeine'){
+    if(line.trim()!==''){ S.usedCaffeine=true; if(S.usedShell) ach('polyglot'); }
+    await runCaffeine(line); await reveal(); refreshDeck(); return;
+  }
+  if(line.trim()!==''){ S.usedShell=true; if(S.usedCaffeine) ach('polyglot'); }
+  await runShell(line);
+  if(S.busy && S.phase!=='shell'){ return; }   // a reboot took the session over mid-command
+  await reveal(); refreshDeck();
+}
+
+/* ---------------- shell commands ---------------- */
+function splitArgs(line){ return line.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g)?.map(t=>t.replace(/^["']|["']$/g,''))||[]; }
+function joinOut(s){ if(s==null) return; out(s); }
+
+async function runShell(line){
+  const t=line.trim();
+  if(t==='') return;
+  const args=splitArgs(t);
+  let cmd=args[0]; const rest=args.slice(1);
+  const fs=S.fs, b=BUILDS[S.build];
+
+  // sticky-note joke password
+  if(/^waterssuxx$/i.test(cmd)){ out('-sh: '+cmd+': command not found'); out('(also: brand not supported)','l-dim'); ach('waters'); return; }
+
+  // pipelines: support simple "A | grep X" etc on modeled text
+  if(t.includes('|')){ return runPipelineFixed(t); }
+
+  const resolve=(p)=> fs.norm(p.startsWith('/')?p:(S.cwd==='/'?'/':S.cwd+'/')+p);
+
+  switch(cmd){
+    case 'reboot': return doReboot();
+    case 'ifconfig': case 'ip':
+      out('eth0      Link encap:Ethernet  HWaddr 00:1B:24:'+(S.build==='astral'?'A2':'7F')+':10:C8');
+      out('          inet addr:'+b.host+'  Bcast:172.16.0.255  Mask:255.255.255.0');
+      out('          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1');
+      out('lo        Link encap:Local Loopback');
+      out('          inet addr:127.0.0.1  Mask:255.0.0.0  UP LOOPBACK RUNNING');
+      return;
+    case 'lsmod':
+      out('Module                  Size  Used by');
+      out('ft_drv_usb             45056  1');
+      if(S.build==='astral') out('aqliolnx              286720  2');
+      return;
+    case 'which':
+      rest.forEach(a=>out(['sh','ls','cat','ps','grep','busybox','python3','reboot'].includes(a)?'/bin/'+a:a+': not found'));
+      if(!rest.length) out('which: missing argument');
+      return;
+    case 'top':
+      out('Mem: 1180000K used, 2916000K free    Load average: 0.14 0.11 0.05');
+      out('  PID  PPID USER     STAT   VSZ %MEM %CPU COMMAND');
+      out('  742     1 root     S    248320  6.0 11.2 ./ftapp');
+      out('    1     0 root     S      1536  0.0  0.0 init');
+      out('  914   893 root     R      1664  0.0  0.1 top');
+      return;
+    case 'exit': case 'logout':
+      if(S.phase==='shell'){ closeConn('logout'); } return;
+    case 'pwd': out(S.cwd); return;
+    case 'clear': S.lines=[]; S.visible=0; return;
+    case 'whoami': out('root'); return;
+    case 'id': out('uid=0(root) gid=0(root) groups=0(root)'); return;
+    case 'hostname': out('localhost'); return;
+    case 'echo': out(rest.join(' ')); return;
+    case 'history': S.history.forEach((h,i)=>out(String(i+1).padStart(4)+'  '+h)); return;
+    case 'uname': return doUname(rest,b);
+    case 'env': case 'printenv': return doEnv(b);
+    case 'date': out(new Date().toUTCString().replace('GMT','UTC')); return;
+    case 'ps': return doPs(b);
+    case 'free': out('              total        used        free\nMem:        4096000     1180000     2916000\nSwap:             0           0           0'); return;
+    case 'df': out('Filesystem      Size  Used Avail Use% Mounted on\nrootfs          2.0G  588M  1.4G  30% /\ntmpfs           2.0G  4.0M  2.0G   1% /tmp'); return;
+    case 'cd': return doCd(rest,resolve);
+    case 'ls': return doLs(rest,resolve);
+    case 'find': return doFind(rest,resolve);
+    case 'file': return doFile(rest,resolve);
+    case 'cat': case 'head': case 'tail': case 'wc': case 'grep':
+      return doText(cmd,rest,resolve,null);
+    case 'help':
+      out('BusyBox multi-call binary. Common commands available in this console:');
+      out('  cd  pwd  ls  find  file  cat  head  tail  grep  wc  echo  env');
+      out('  ps  top  uname  whoami  id  hostname  ifconfig  lsmod  which');
+      out('  history  clear  reboot  exit');
+      out('Helper scripts in /:  ./run_app   ./show_output   ./ftconsole');
+      ach('rtfm');
+      return;
+  }
+  // executables / helper scripts
+  if(cmd==='./ftconsole.sh'||cmd==='./ftconsole'||cmd==='ftconsole'||
+     ((cmd==='python'||cmd==='python3')&&rest.some(a=>a.includes('interactive.py')))){
+    if(b.hasCaffeine){ enterCaffeine('shell'); }
+    else { out('ftconsole.sh: pyinst/interactive.py*: not found'); }
+    return;
+  }
+  if(cmd==='./run_app.sh'||cmd==='./run_app'){ out('  Run FT application from development console  v02 '); return; }
+  if(cmd==='./show_output.sh'||cmd==='./show_output'){ out('[waiting for ftapp output; no live stream in this reconstruction]','l-dim'); return; }
+  if(cmd==='./start_ftapp.sh'&&S.build==='astral'){ out('========= Starting ftapp ============'); return; }
+  if(cmd==='./digitizer_debug_flags.sh'&&S.build==='astral'){
+    out('enabling verbose ADC capture - not for daily use');
+    out('ADC_TRACE_API=1 ADC_TRACE_IO=1 ADC_TRACE_DMA=1 ADC_DUMP_TRANSIENTS=1','l-dim');
+    out('[adc] dumping raw transients, C-trap fill running hot','gred');
+    ach('houston'); return;
+  }
+  if(cmd==='./killFtapp.sh'&&S.build==='astral'){ return runKillFtapp(); }
+
+  // maybe it's a path to an existing file that isn't executable-modelled
+  const rp=resolve(cmd.replace(/^\.\//,''));
+  if(fs.isFile(rp)) { out(cmd+': '+ (fs.isBin(rp)?'cannot execute binary file':'permission denied')); return; }
+  out('sh: '+cmd+': not found');
+}
+
+function doUname(rest,b){
+  if(rest.includes('-a')){ out(`Linux localhost ${b.kernel} #1 SMP PREEMPT_DYNAMIC x86_64 GNU/Linux`); return; }
+  if(rest.includes('-r')){ out(b.kernel); return; }
+  if(rest.includes('-m')){ out('x86_64'); return; }
+  out('Linux');
+}
+function doEnv(b){
+  ['USER=root','HOME=/root','SHELL=/bin/sh','PATH=/bin:/sbin:/usr/bin:/usr/sbin',
+   'PYTHONIOENCODING=utf8','LC_ALL=en_US.UTF-8','TERM=xterm'].forEach(x=>out(x));
+  if(S.build==='astral'){ out('POLARS_MAX_THREADS=1'); out('JOBLIB_MULTIPROCESSING=0'); }
+}
+function doPs(b){
+  out('  PID USER       VSZ STAT COMMAND');
+  out('    1 root      1536 S    init');
+  out('  742 root    248320 S    ./ftapp');
+  out(S.proto==='ssh' ? '  893 root      1904 S    dropbear -r /root/server_key -s'
+                      : '  893 root      1792 S    telnetd -l /bin/second_l.sh');
+  out('  914 root      1664 R    /bin/sh');
+}
+function doCd(rest,resolve){
+  const target = rest[0]? resolve(rest[0]) : '/';
+  if(S.fs.isDir(target)){ S.cwd=target; if(target.startsWith('/pyinst')) ach('spelunk'); return; }
+  if(S.fs.isFile(target)){ out('sh: cd: '+rest[0]+': Not a directory'); return; }
+  out('sh: cd: '+(rest[0]||'')+': No such file or directory');
+}
+function globMatch(pat,name){
+  const re=new RegExp('^'+pat.replace(/[.+^${}()|[\]\\]/g,'\\$&').replace(/\*/g,'.*').replace(/\?/g,'.')+'$');
+  return re.test(name);
+}
+function doLs(rest,resolve){
+  const long=rest.some(a=>/^-\w*l/.test(a));
+  const all=rest.some(a=>/^-\w*a/.test(a));
+  let ops=rest.filter(a=>!a.startsWith('-'));
+  if(ops.length===0) ops=['.'];
+  const fs=S.fs; const blocks=[];
+  for(const op of ops){
+    // glob within current dir
+    if(op.includes('*')){
+      const base=fs.norm((S.cwd==='/'?'/':S.cwd+'/'));
+      const matches=fs.children(S.cwd).filter(n=>globMatch(op,n));
+      matches.forEach(n=>emit(n, (S.cwd==='/'?'/':S.cwd+'/')+n));
+      if(matches.filter(n=>n.indexOf('img_')===0).length>=3) ach('boards');
+      if(matches.length===0) out('ls: '+op+': No such file or directory');
+      continue;
+    }
+    const p=resolve(op);
+    if(fs.isDir(p)){
+      let names=fs.children(p);
+      if(!all) names=names.filter(n=>!n.startsWith('.'));
+      if(all) names=['.','..',...names];
+      if(ops.length>1) out(op+':');
+      if(names.filter(n=>n.indexOf('img_')===0).length>=3) ach('boards');
+      names.forEach(n=> emit(n, p==='/'?'/'+n:p+'/'+n));
+      if(ops.length>1) out('');
+    } else if(fs.isFile(p)){ emit(op,p); }
+    else out('ls: '+op+': No such file or directory');
+  }
+  function emit(name,full){
+    if(!long){ out(name, colorFor(full)); return; }
+    const dir=fs.isDir(full);
+    let size='       -';
+    if(!dir && !fs.isBin(full)){ const c=fileFor(S.build,full)??''; size=String(c.length).padStart(8); }
+    else if(dir) size='    4096';
+    const perms=dir?'drwxr-xr-x':(fs.isBin(full)?'-rwxr-xr-x':'-rw-r--r--');
+    out(`${perms}  1 root root ${size} ${name}`, colorFor(full));
+  }
+}
+function colorFor(full){
+  if(S.fs.isDir(full)) return 'l-blue';
+  if(S.fs.isBin(full)){ const n=full.split('/').pop(); if(n.startsWith('img_o_')) return 'l-amber'; return ''; }
+  return '';
+}
+function doFind(rest,resolve){
+  const start = (rest[0]&&!rest[0].startsWith('-'))? resolve(rest[0]) : S.cwd;
+  const nameI=rest.indexOf('-name'); const pat = nameI>=0? rest[nameI+1] : '*';
+  const typeI=rest.indexOf('-type'); const type = typeI>=0? rest[typeI+1] : null;
+  if(!S.fs.exists(start)){ out('find: '+(rest[0]||'.')+': No such file or directory'); return; }
+  const all=S.fs.allPaths().sort();
+  for(const p of all){
+    if(!(p===start || p.startsWith((start==='/'?'/':start+'/')))) continue;
+    const base=p.split('/').pop()||'/';
+    if(!globMatch(pat,base)) continue;
+    if(type==='d' && !S.fs.isDir(p)) continue;
+    if(type==='f' && !S.fs.isFile(p)) continue;
+    out(p, colorFor(p));
+  }
+}
+function doFile(rest,resolve){
+  for(const a of rest){
+    const p=resolve(a);
+    let kind;
+    if(S.fs.isDir(p)) kind='directory';
+    else if(!S.fs.isFile(p)) kind='cannot open (No such file or directory)';
+    else if(S.fs.isBin(p)){
+      const n=p.split('/').pop();
+      kind = n.endsWith('.pyc')?'python 3 byte-compiled':
+             n.startsWith('img_')?'data (board firmware image)':
+             'ELF 64-bit LSB executable, x86-64';
+    } else kind='POSIX shell script, ASCII text executable';
+    out(a+': '+kind);
+  }
+}
+function readLinesOrErr(path){
+  const r=S.fs.read(path);
+  if(r.err) return {err:path.split('/').pop()+': '+r.err};
+  if(r.bin) return {err:null,bin:true,name:path.split('/').pop()};
+  return {text:r.text};
+}
+function doText(cmd,rest,resolve,pipeIn){
+  let n=10;
+  const args=[...rest];
+  const ni=args.indexOf('-n');
+  if(ni>=0 && (cmd==='head'||cmd==='tail')){ n=parseInt(args[ni+1],10)||10; args.splice(ni,2); }
+  const flags=args.filter(a=>a.startsWith('-'));
+  const ops=args.filter(a=>!a.startsWith('-'));
+  let pattern=null;
+  if(cmd==='grep'){ pattern = ops.shift(); if(pattern==null){ out('BusyBox grep: missing pattern'); return; } }
+  let content;
+  if(ops.length){
+    let acc='';
+    for(const op of ops){
+      const p=resolve(op); const r=readLinesOrErr(p);
+      if(r.err){ out(cmd+': '+r.err); return; }
+      if(r.bin){ out(cmd+': '+r.name+': cannot display binary file','l-dim'); return; }
+      if(cmd==='cat'){ const base=p.split('/').pop();
+        if(p==='/etc/passwd') ach('passwd');
+        if(base.indexOf('startftboot')===0) ach('digarch');
+        if(base==='help.txt') ach('rtfm'); }
+      acc+=r.text;
+    }
+    content=acc;
+  } else if(pipeIn!=null){ content=pipeIn; }
+  else { return; } // no stdin in this reconstruction
+  return emitText(cmd,pattern,flags,n,content);
+}
+function emitText(cmd,pattern,flags,n,content){
+  const opts=flags.join('');
+  let lines=content.split('\n');
+  if(lines.length && lines[lines.length-1]==='') lines=lines.slice(0,-1);
+  if(cmd==='cat'){ lines.forEach(l=>out(l)); return content; }
+  if(cmd==='head'){ const s=lines.slice(0,n); s.forEach(l=>out(l)); return s.join('\n')+'\n'; }
+  if(cmd==='tail'){ const s=n?lines.slice(-n):[]; s.forEach(l=>out(l)); return s.join('\n')+'\n'; }
+  if(cmd==='wc'){
+    if(opts.includes('l')){ out(String(lines.length)); }
+    else { const bytes=content.length, words=(content.match(/\S+/g)||[]).length; out(`${String(lines.length).padStart(7)} ${String(words).padStart(7)} ${String(bytes).padStart(7)}`); }
+    return;
+  }
+  if(cmd==='grep'){
+    const ci=opts.includes('i'), inv=opts.includes('v'), num=opts.includes('n'), cnt=opts.includes('c');
+    const rows=[];
+    lines.forEach((l,i)=>{ let hit = ci? l.toLowerCase().includes(pattern.toLowerCase()) : l.includes(pattern);
+      if(hit!==inv) rows.push([i+1,l]); });
+    if(cnt){ out(String(rows.length)); return String(rows.length)+'\n'; }
+    rows.forEach(([i,l])=> out((num?i+':':'')+l));
+    return rows.map(([i,l])=>(num?i+':':'')+l).join('\n')+'\n';
+  }
+}
+function runPipelineFixed(t){
+  const parts=t.split('|').map(s=>s.trim());
+  let data=null;
+  for(let i=0;i<parts.length;i++){
+    const isLast=i===parts.length-1;
+    const args=splitArgs(parts[i]); const cmd=args[0]; const rest=args.slice(1);
+    const resolve=(p)=> S.fs.norm(p.startsWith('/')?p:(S.cwd==='/'?'/':S.cwd+'/')+p);
+    const before=S.lines.length;
+    if(cmd==='ls'){ doLs(rest,resolve); }
+    else if(['cat','head','tail','grep','wc'].includes(cmd)){ doText(cmd,rest,resolve,data); }
+    else { out('sh: unsupported in pipeline: '+cmd,'l-dim'); return; }
+    const producedLines=S.lines.slice(before).map(x=>x.t);
+    data=producedLines.join('\n');
+    if(!isLast){ S.lines=S.lines.slice(0,before); } // discard until final stage
+  }
+}
+
+/* ---- killFtapp animation ---- */
+async function runKillFtapp(){
+  ach('chaos');
+  const sess=S;
+  sess.chaos=true; sess.busy=true; sess.input=''; refreshDeck();
+  let pid=742;
+  const rint=()=>Math.floor(Math.random()*(35-3+1))+3;
+  const alive=()=>S===sess && sess.chaos;
+  while(alive()){
+    const n=rint();
+    emit('Sleeping for '+n,''); await sleep(650+Math.min(n,6)*120); if(!alive()) break;
+    emit('Killing ftapp process with PID: '+pid,''); await sleep(360); if(!alive()) break;
+    emit('Killed ftapp process',''); await sleep(520);
+    pid+=Math.floor(Math.random()*40)+20;
+  }
+}
+
+/* ---- Theobromine console ---- */
+function enterCaffeine(from){
+  S.phase='caffeine'; S.caffeineFrom=from; S.echo=true; S.input=''; ach('caffeine');
+  const yr=BUILDS[S.build].pyyear;
+  out('Theobromine :: live instrument console');
+  out(`Copyright (c) 2001-${yr} Python Software Foundation.`,'l-dim');
+  out('All Rights Reserved.','l-dim'); out('','l-dim');
+  out('Copyright (c) 2000 BeOpen.com.','l-dim'); out('All Rights Reserved.','l-dim'); out('','l-dim');
+  out('Copyright (c) 1995-2001 Corporation for National Research Initiatives.','l-dim');
+  out('All Rights Reserved.','l-dim'); out('','l-dim');
+  out('Copyright (c) 1991-1995 Stichting Mathematisch Centrum, Amsterdam.','l-dim');
+  out('All Rights Reserved.','l-dim'); out('');
+  out('type quit() to leave, reboot() for a fresh start','');
+  out('');
+}
+function tb(type,msg){
+  out('Traceback (most recent call last):','l-red');
+  out('  File "<instrument-console>", line 1, in <module>','l-red');
+  out(type+': '+msg,'l-red');
+}
+async function runCaffeine(line){
+  const t=line.trim();
+  if(t===''){ return; }
+  if(['quit','quit()','exit','exit()'].includes(t)){
+    if(S.caffeineFrom==='login'){ // second_l.sh continues: sleep 5 -> connection closes
+      await sleep(500); closeConn('Connection closed by foreign host.');
+    } else { S.phase='shell'; S.echo=true; }
+    refreshDeck(); return;
+  }
+  if(t==='reboot()'){ // os.system('reboot') -> board reboots
+    await doReboot(); return;
+  }
+  // import
+  let m;
+  if((m=t.match(/^import\s+([\w.]+)$/))){
+    const mod=m[1];
+    const STD=['sys','os','platform','time','math','json','random','re','socket','struct','datetime','collections','threading','logging','subprocess','numpy'];
+    if(['ftapp','para.scan','para','operation.base_op','operation','util.instvalue','util'].includes(mod)||STD.includes(mod)) return;
+    tb('ImportError',`No module named '${mod}'`); return;
+  }
+  // print(...)
+  if((m=t.match(/^print\s*\((.*)\)\s*$/))){
+    const v=evalExpr(m[1].trim());
+    if(v && v.__err){ tb(v.type,v.msg); return; }
+    out(pyStr(v)); return;
+  }
+  // bare statement (executes; prints nothing), but evaluate for side effects/errors
+  const v=evalExpr(t);
+  if(v && v.__err){ tb(v.type,v.msg); return; }
+  // statements print nothing (this is exec, not a REPL)
+}
+function err(type,msg){ return {__err:true,type,msg}; }
+const INT_KEYS=new Set(['uscans','microscans','scan_polarity','agc_mode']);
+function numVal(n,key){ return {__num:n, float:!INT_KEYS.has(key)}; }
+function pyStr(v){
+  if(v&&v.__num!==undefined){ return v.float ? (Number.isInteger(v.__num)?v.__num.toFixed(1):String(v.__num)) : String(v.__num); }
+  if(v===null||v===undefined) return 'None';
+  if(v===true) return 'True'; if(v===false) return 'False';
+  if(Array.isArray(v)) return '['+v.map(x=>typeof x==='string'?`'${x}'`:pyStr(x)).join(', ')+']';
+  if(typeof v==='number'){ return Number.isInteger(v)&&!/\./.test(String(v))? (Object.is(v,-0)?'0':String(v)) : String(v); }
+  return String(v);
+}
+function apiNames(){
+  const natives=[...Object.values(PARAMS).map(p=>p[0]).filter(Boolean),...Object.keys(NATIVE)];
+  const out=['scan_start','ready_for_next_scan','ready_for_new_scanmatrix'];
+  natives.forEach(n=>{ out.push('get_'+n); out.push('set_'+n); });
+  return out.sort();
+}
+function evalExpr(e){
+  e=e.trim();
+  if(e==='') return null;
+  if(/^-?\d+(\.\d+)?$/.test(e)) return e.includes('.')?parseFloat(e):parseInt(e,10);
+  let m;
+  if((m=e.match(/^dir\((.*)\)$/))){
+    const a=m[1].trim();
+    if(a===''||a==='ftapp') return apiNames();
+    if(a==='para.scan') return Object.keys(PARAMS).sort();
+    return err('NameError',`name '${a}' is not defined`);
+  }
+  if(e==='help()') { out("print(para.scan.first_mass.get_value()); para.scan.first_mass.set(150.0); operation.base_op.takeascan()"); return null; }
+  // para.scan.<p>.get_value() / .set(x)
+  if((m=e.match(/^para\.scan\.(\w+)\.(get_value|set)\((.*)\)$/))){
+    const [_,name,act,arg]=m;
+    if(!(name in S.values)) return err('AttributeError',`scan has no parameter '${name}'`);
+    if(act==='get_value'){ if(arg.trim()!=='') return err('TypeError','get_value() takes no arguments'); return numVal(S.values[name],name); }
+    return setParam('para',name,arg);
+  }
+  // ftapp.get_/set_native / calls
+  if((m=e.match(/^ftapp\.(\w+)\((.*)\)$/))){
+    const fn=m[1], arg=m[2].trim();
+    if(fn==='ready_for_next_scan'||fn==='ready_for_new_scanmatrix') return 1;
+    if(fn==='scan_start'){ return doScan(); }
+    const gm=fn.match(/^(get|set)_(\w+)$/);
+    if(gm){
+      if(!apiNames().includes(fn)) return err('AttributeError',`module 'ftapp' has no attribute '${fn}'`);
+      const native=gm[2];
+      const pkey=Object.keys(PARAMS).find(k=>PARAMS[k][0]===native);
+      if(gm[1]==='get'){ if(arg!=='') return err('TypeError','getter takes no arguments');
+        return pkey!=null? numVal(S.values[pkey],pkey) : numVal(S.native[native],native); }
+      return setParam(pkey!=null?'para':'native', pkey!=null?pkey:native, arg);
+    }
+    return err('AttributeError',`module 'ftapp' has no attribute '${fn}'`);
+  }
+  if(e.match(/^operation\.base_op\.takeascan\((.*)\)$/)) return doScan();
+  if(e==='ftapp'||e==='para.scan') return e; // attribute ref, no repr in exec context
+  { const B=BUILDS[S.build], mm=B.pyver.split('.'), py2=mm.slice(0,2).join('.');
+    if(e==='sys.version') return `${B.pyver} (main, ${B.pyyear}-06-04) [GCC 12.2.0]`;
+    if(e==='sys.version_info') return `sys.version_info(major=${mm[0]}, minor=${mm[1]}, micro=${mm[2]||0}, releaselevel='final', serial=0)`;
+    if(e==='sys.executable') return '/pyinst/bin/python3';
+    if(e==='sys.platform') return 'linux';
+    if(e==='sys.prefix'||e==='sys.base_prefix') return '/pyinst';
+    if(e==='sys.path') return ['', '/pyinst', `/pyinst/lib/python${py2}`, `/pyinst/lib/python${py2}/site-packages`];
+    if(e==='os.getcwd()') return S.cwd;
+    if(e==='os.getpid()') return 742;
+    if(e==='os.getuid()') return 0;
+    if(e==='os.uname()') return `posix.uname_result(sysname='Linux', nodename='localhost', release='${B.kernel}', version='#1 SMP PREEMPT_DYNAMIC', machine='x86_64')`;
+    if(e==='platform.system()') return 'Linux';
+    if(e==='platform.machine()') return 'x86_64';
+    if(e==='platform.release()') return B.kernel;
+    if(e==='platform.node()') return 'localhost';
+    if(e==='platform.python_version()') return B.pyver;
+  }
+  return err('NameError',`name '${e.split(/[.\(]/)[0]}' is not defined`);
+}
+function setParam(kind,key,argRaw){
+  const a=argRaw.trim();
+  if(!/^-?\d+(\.\d+)?$/.test(a)) return err('ValueError','expected one numeric value');
+  const val=a.includes('.')?parseFloat(a):parseInt(a,10);
+  if(kind==='para'){ S.values[key]=val; }
+  else { S.native[key]=val; }
+  return null;
+}
+function doScan(){
+  if(S.values.first_mass>=S.values.last_mass) return err('ValueError','FirstMass must be < LastMass');
+  S.scans++; ach('scan');
+  return null;
+}
+
+/* ---------------- command deck (context buttons) ---------------- */
+function refreshDeck(){
+  btnsEl.innerHTML='';
+  if(!S || S.phase==='closed' || S.phase==='connecting'){
+    locEl.textContent = S && S.phase==='connecting' ? 'connecting…' : 'not connected';
+    if(!S || S.phase==='closed'){ const d=document.createElement('div'); d.className='disabled';
+      d.textContent='Open a session in the PuTTY dialog to begin.'; btnsEl.appendChild(d); }
+    return;
+  }
+  const b=BUILDS[S.build];
+  if(S.phase==='login'){
+    locEl.textContent = `${b.label} · ${S.proto} login`;
+    if(S.proto==='ssh'){ addBtn('Press Enter: root has no password','(empty password)','',()=>{S.input='';submit();}); }
+    else if(b.loginMenu){
+      addBtn('Log in as 4np','4np → root shell','',()=>typeAndRun('4np'));
+      addBtn('Log in as Bqtn716k','Bqtn716k → root shell','',()=>typeAndRun('Bqtn716k'));
+      addBtn('Log in as Theobromine','Theobromine → Python console','py',()=>typeAndRun('Theobromine'));
+      addBtn('Try a wrong name','drops the connection','',()=>typeAndRun('guest'));
+    }
+    return;
+  }
+  if(S.phase==='caffeine'){
+    locEl.innerHTML = `${b.label} · <b>&gt;&gt;FT&gt;&gt;</b> Python console`;
+    addBtn('Read first mass','print(para.scan.first_mass.get_value())','py',()=>typeAndRun('print(para.scan.first_mass.get_value())'));
+    addBtn('Set first mass = 150','para.scan.first_mass.set(150.0)','py',()=>typeAndRun('para.scan.first_mass.set(150.0)'));
+    addBtn('Read it via ftapp','print(ftapp.get_mass_range_low_moz())','py',()=>typeAndRun('print(ftapp.get_mass_range_low_moz())'));
+    addBtn('Take a scan','operation.base_op.takeascan()','py',()=>typeAndRun('operation.base_op.takeascan()'));
+    addBtn('List ftapp calls','print(dir(ftapp))','py',()=>typeAndRun('print(dir(ftapp))'));
+    addBtn('Python version','print(sys.version)','py',()=>typeAndRun('print(sys.version)'));
+    addBtn('Which python?','print(sys.executable)','py',()=>typeAndRun('print(sys.executable)'));
+    addBtn('Machine arch','print(platform.machine())','py',()=>typeAndRun('print(platform.machine())'));
+    addBtn('Console PID (inside ftapp)','print(os.getpid())','py',()=>typeAndRun('print(os.getpid())'));
+    addBtn('Quit console','quit()','',()=>typeAndRun('quit()'));
+    return;
+  }
+  // shell
+  locEl.innerHTML = `${b.label} · <b>${S.cwd}</b>`;
+  if(S.chaos){ addBtn('Reboot the board','reboot','accent',()=>typeAndRun('reboot')); return; }
+  if(S.busy){ const d=document.createElement('div'); d.className='disabled'; d.textContent='running…'; btnsEl.appendChild(d); return; }
+  addBtn('List files','ls','',()=>typeAndRun('ls'));
+  addBtn('List with detail','ls -l','',()=>typeAndRun('ls -l'));
+  if(S.cwd!=='/') addBtn('Go up','cd ..','',()=>typeAndRun('cd ..'));
+  if(S.cwd!=='/') addBtn('Back to root','cd /','',()=>typeAndRun('cd /'));
+
+  if(S.cwd==='/'){
+    if(S.build==='astral'){
+      addBtn('The crash daemon','cat killFtapp.sh','accent',()=>typeAndRun('cat killFtapp.sh'));
+      addBtn('Run the crash daemon','./killFtapp.sh','accent',()=>typeAndRun('./killFtapp.sh'));
+      addBtn('Digitizer spy flags','cat digitizer_debug_flags.sh','accent',()=>typeAndRun('cat digitizer_debug_flags.sh'));
+      addBtn('Board firmware images','ls img_o_*','',()=>typeAndRun('ls img_o_*'));
+      addBtn('Boot script (failover)','cat startftboot3.sh','',()=>typeAndRun('cat startftboot3.sh'));
+      addBtn('ftapp launcher','cat start_ftapp.sh','',()=>typeAndRun('cat start_ftapp.sh'));
+    } else {
+      addBtn('The login script','cat /bin/second_l.sh','accent',()=>typeAndRun('cat /bin/second_l.sh'));
+      addBtn('Boot script','cat startftboot3.sh','',()=>typeAndRun('cat startftboot3.sh'));
+      addBtn('Enter the Theobromine console','./ftconsole.sh','py',()=>typeAndRun('./ftconsole.sh'));
+      addBtn('Board firmware images','ls img_m_*','',()=>typeAndRun('ls img_m_*'));
+      addBtn('Look inside /pyinst','cd pyinst','',()=>typeAndRun('cd pyinst'));
+    }
+    addBtn('The password file','cat /etc/passwd','',()=>typeAndRun('cat /etc/passwd'));
+    addBtn('Who am I?','whoami','',()=>typeAndRun('whoami'));
+    addBtn('Running processes','ps','',()=>typeAndRun('ps'));
+    addBtn('Network interfaces','ifconfig','',()=>typeAndRun('ifconfig'));
+    addBtn('Kernel modules','lsmod','',()=>typeAndRun('lsmod'));
+    addBtn('System info','uname -a','',()=>typeAndRun('uname -a'));
+    addBtn('Disk usage','df','',()=>typeAndRun('df'));
+    addBtn('Memory','free','',()=>typeAndRun('free'));
+    addBtn('Top processes','top','',()=>typeAndRun('top'));
+    addBtn('Reboot the board','reboot','accent',()=>typeAndRun('reboot'));
+  } else {
+    // generic dir: offer cat for readable text files here
+    const here=S.fs.children(S.cwd).map(n=> (S.cwd==='/'?'/':S.cwd+'/')+n);
+    const texts=here.filter(p=>S.fs.isFile(p)&&!S.fs.isBin(p)).slice(0,4);
+    texts.forEach(p=>{ const n=p.split('/').pop(); addBtn('Read '+n,'cat '+n,'',()=>typeAndRun('cat '+n)); });
+    addBtn('What is here?','ls -l','',()=>typeAndRun('ls -l'));
+  }
+  addBtn('Clear screen','clear','',()=>typeAndRun('clear'));
+  addBtn('Disconnect','exit','',()=>typeAndRun('exit'));
+}
+function addBtn(label,cmd,cls,fn){
+  const b=document.createElement('button');
+  b.className='cmdbtn'+(cls?(' '+cls):'');
+  b.innerHTML=`${label}<span class="c">${cmd.replace(/</g,'&lt;')}</span>`;
+  b.onclick=()=>{ if(S && (!S.busy||S.chaos)){ hin.focus(); fn(); } };
+  btnsEl.appendChild(b);
+}
+
+/* type a command out then run it */
+async function typeAndRun(cmd){
+  if(S.busy && !S.chaos) return;
+  if(S.phase==='login' && S.proto==='ssh'){ S.input=''; submit(); return; }
+  S.input=''; render();
+  for(const ch of cmd){ S.input+=ch; render(); await sleep(16); }
+  await sleep(80); submit();
+}
+
+/* ---------------- input handling ---------------- */
+document.addEventListener('keydown',e=>{
+  if(!S || !['login','shell','caffeine'].includes(S.phase) || (S.busy && !S.chaos)) return;
+  if(document.activeElement && document.activeElement.closest('.dialog')) return;
+  if(e.key==='Enter'){ e.preventDefault(); submit(); }
+  else if(e.key==='Backspace'){ e.preventDefault(); lastKeyEdit=Date.now(); S.histIdx=null; S.input=S.input.slice(0,-1); render(); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); histPrev(); }
+  else if(e.key==='ArrowDown'){ e.preventDefault(); histNext(); }
+  else if(e.key==='c' && e.ctrlKey){ e.preventDefault(); emit(promptText()+S.input+'^C',''); S.histIdx=null; S.input=''; render(); }
+  else if(e.key.length===1 && !e.ctrlKey && !e.metaKey){ e.preventDefault(); lastKeyEdit=Date.now(); S.histIdx=null; S.input+=e.key; render(); }
+});
+function histPrev(){
+  if(S.phase!=='shell'&&S.phase!=='caffeine') return;
+  if(!S.history.length) return;
+  if(S.histIdx==null) S.histIdx=S.history.length;
+  if(S.histIdx>0) S.histIdx--;
+  S.input=S.history[S.histIdx]||''; render();
+}
+function histNext(){
+  if(S.phase!=='shell'&&S.phase!=='caffeine') return;
+  if(S.histIdx==null) return;
+  S.histIdx++;
+  if(S.histIdx>=S.history.length){ S.histIdx=null; S.input=''; } else S.input=S.history[S.histIdx];
+  render();
+}
+/* A physical keyboard is handled by the keydown listener above, which preventDefaults so
+   these never fire. A phone keyboard reports 'Unidentified' through keydown, so the input's
+   own events are the real path there. lastKeyEdit keeps the two from double-counting. */
+let lastKeyEdit=0;
+const typingLive=()=>S && ['login','shell','caffeine'].includes(S.phase) && (!S.busy || S.chaos);
+hin.addEventListener('input',()=>{
+  const raw=hin.value; hin.value='';
+  if(!typingLive() || Date.now()-lastKeyEdit<60) return;
+  const nl=raw.indexOf('\n');
+  S.histIdx=null; S.input+=(nl<0?raw:raw.slice(0,nl)); render();
+  if(nl>=0) submit();                       // some phone keyboards send Enter as a newline
+});
+hin.addEventListener('beforeinput',e=>{     // phone backspace arrives as an edit, not a key
+  if(e.inputType!=='deleteContentBackward') return;
+  e.preventDefault();
+  if(!typingLive() || Date.now()-lastKeyEdit<60) return;
+  S.histIdx=null; S.input=S.input.slice(0,-1); render();
+});
+termEl.addEventListener('click',()=>hin.focus());
+
+/* ---------------- dialog wiring ---------------- */
+let selBuild='exploris';
+document.querySelectorAll('#sessions div').forEach(d=>{
+  d.onclick=()=>{ document.querySelectorAll('#sessions div').forEach(x=>x.classList.remove('sel'));
+    d.classList.add('sel'); selBuild=d.dataset.build; };
+});
+document.getElementById('btnOpen').onclick=()=>{
+  const proto=document.querySelector('input[name=proto]:checked').value;
+  connect(selBuild,proto);
+};
+document.getElementById('host').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('btnOpen').click(); });
+document.getElementById('btnClose').onclick=()=>{ if(S && S.phase!=='closed') closeConn('Connection closed.'); };
+document.getElementById('btnClose2').onclick=()=>{ if(S && S.phase!=='closed' && !S.busy) closeConn('Connection closed.'); };
+
+/* live taskbar clock */
+function tick(){ const d=new Date(); let h=d.getHours(); const m=String(d.getMinutes()).padStart(2,'0');
+  const ap=h<12?'AM':'PM'; h=h%12||12; const el=document.getElementById('clock'); if(el) el.textContent=`${h}:${m} ${ap}`; }
+tick(); setInterval(tick,15000);
+
+/* achievements wiring */
+document.getElementById('achBtn').onclick=()=>{ renderAchList(); document.getElementById('achPanel').hidden=false; };
+document.getElementById('oHit').onclick=(e)=>{ e.stopPropagation();
+  const a=ACH.find(x=>x.id==='hometown');
+  if(ACH_UNLOCKED.has('hometown')) queueToast(a); else ach('hometown'); };
+document.getElementById('achClose').onclick=()=>{ document.getElementById('achPanel').hidden=true; };
+document.getElementById('achPanel').addEventListener('click',e=>{ if(e.target.id==='achPanel') e.currentTarget.hidden=true; });
+document.getElementById('achReset').onclick=(e)=>{
+  const el=e.target;
+  if(el.dataset.armed!=='1'){ el.dataset.armed='1'; el.textContent='click again to confirm reset';
+    setTimeout(()=>{ el.dataset.armed='0'; el.textContent='reset progress'; },2500); return; }
+  ACH_UNLOCKED=new Set(); achSave(); achCountEls(); renderAchList();
+  el.dataset.armed='0'; el.textContent='reset progress';
+};
+function checkHometown(){
+  if(ACH_UNLOCKED.has('hometown')) return;
+  const TARGETS=[{lat:53.0793,lon:8.8017},{lat:42.3765,lon:-71.2356}];   // Bremen, DE / Waltham, MA
+  const rad=d=>d*Math.PI/180;
+  const near=(la,lo)=>TARGETS.some(t=>{
+    const dLa=rad(t.lat-la), dLo=rad(t.lon-lo);
+    const x=Math.sin(dLa/2)**2+Math.cos(rad(la))*Math.cos(rad(t.lat))*Math.sin(dLo/2)**2;
+    return 2*6371*Math.asin(Math.min(1,Math.sqrt(x)))<=40;              // within ~40 km
+  });
+  try{
+    fetch('https://ipwho.is/').then(r=>r.json()).then(d=>{
+      if(!d||d.success===false) return;
+      const cityHit=/^(bremen|waltham)$/i.test(String(d.city||'').trim());
+      if(cityHit || (typeof d.latitude==='number' && near(d.latitude,d.longitude))) ach('hometown');
+    }).catch(()=>{});
+  }catch(e){}
+}
+achCountEls();
+checkHometown();
+
+refreshDeck();
+</script>
+
+<!-- ============================ CHIPTUNE SOUNDTRACK (Web Audio, no files) ============================ -->
+<script>
+"use strict";
+/* A tiny 4-channel tracker: pulse lead, pulse arp, triangle bass, noise drums.
+   Everything is synthesised in the browser, so the page still ships as one file.
+
+   Three soundtracks live in STYLES below - each one is a self-contained block of
+   (voices + mix + drum kit + chords + melody), so a style can be lifted out or a
+   fourth added without touching the engine. [MUSIC] toggles audio, the note button
+   cycles the style. */
+(function(){
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const btn = document.getElementById('sndBtn');
+  const stateEl = document.getElementById('sndState');
+  const styBtn = document.getElementById('styleBtn');
+  const styEl = document.getElementById('styleName');
+
+  if(!AC){ if(btn) btn.style.display='none'; if(styBtn) styBtn.style.display='none';
+    window.MUSIC={live(){},idle(){}}; window.SFX={achieve(){},enter(){},disconnect(){}}; return; }
+
+  /* ---------------- pitch ---------------- */
+  const SEMI={C:0,'C#':1,D:2,'D#':3,E:4,F:5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11};
+  function hz(n){ const m=/^([A-G]#?)(\d)$/.exec(n); if(!m) return 0;
+    return 440*Math.pow(2,(SEMI[m[1]]+(+m[2]+1)*12-69)/12); }
+
+  /* chord voicings drive the arpeggio channel; ROOT/FIFTH drive the bass.
+     Flats are spelled as sharps (Eb = D#, Bb = A#) because that is how hz() reads them. */
+  const CHORD={
+    /* A minor - FT-BOARD */
+    Am:['A3','C4','E4'], F:['F3','A3','C4'], C:['C4','E4','G4'], G:['G3','B3','D4'],
+    Dm:['D4','F4','A4'], Em:['E3','G3','B3'], E:['E3','G#3','B3'],
+    /* D phrygian - BLADE SALAD */
+    Eb:['D#4','G4','A#4'], Bb:['A#3','D4','F4'], Gm:['G3','A#3','D4'], A:['A3','C#4','E4'],
+    /* D major - CENTROID */
+    D:['D4','F#4','A4'], Bm:['B3','D4','F#4'], Fsm:['F#3','A3','C#4']
+  };
+  const ROOT ={Am:'A2',F:'F2',C:'C3',G:'G2',Dm:'D3',Em:'E2',E:'E2',
+               Eb:'D#3',Bb:'A#2',Gm:'G2',A:'A2', D:'D3',Bm:'B2',Fsm:'F#2'};
+  const FIFTH={Am:'E3',F:'C3',C:'G3',G:'D3',Dm:'A3',Em:'B2',E:'B2',
+               Eb:'A#3',Bb:'F3',Gm:'D3',A:'E3', D:'A3',Bm:'F#3',Fsm:'C#3'};
+
+  const PAT_8TH =['r',null,'r',null,'o',null,'r',null,'r',null,'5',null,'o',null,'r',null];
+  const PAT_SLOW=['r',null,null,null,null,null,null,null,'5',null,null,null,null,null,null,null];
+  const PAT_POP =['r',null,'r',null,'r',null,'o',null,'r',null,'r',null,'5',null,'o',null];
+
+  /* ================= STYLES =================
+     Each entry is a whole soundtrack: tone colours, mix, drum kit and song.
+     The three are deliberately in three different keys so they never blur together. */
+  const STYLES=[
+
+    /* ---- 1. FT-BOARD : the original. Driving A-minor pulse chiptune. ---- */
+    { id:'ft', name:'FT-BOARD',
+      bpm:{idle:132, live:132, astral:146},
+      cutoff:5200, vol:{idle:.15, live:.17},
+      delay:{time:.27, fb:.30, wet:.20},
+      lead:{wave:'p25', peak:.115, twin:-9, twinPeak:.055, oct:0, gate:.92},
+      arp :{wave:'p12', peak:.055, idlePeak:.055, oct:1, every:1, idleEvery:4, gate:.85},
+      bass:{wave:'tri', peak:.30, idlePeak:.30, len:1.7, idleLen:7, pat:PAT_8TH},
+      drums:{on:true, gain:.55, kick:[0,6,10], snare:[4,12], hat:2, hatHz:7200,
+             kickHi:155, kickLo:44, snareHz:1500, body:190, fill:true},
+      song:{
+        A:{ chords:['Am','F','C','G','Am','F','G','Am'],
+            lead:[ {0:'A4',2:'C5',4:'E5',6:'D5',8:'C5',10:'A4',12:'B4'},
+                   {0:'C5',4:'A4',6:'F4',8:'G4',12:'A4'},
+                   {0:'E5',2:'G5',4:'E5',6:'D5',8:'C5',12:'D5'},
+                   {0:'B4',2:'D5',4:'G5',8:'F5',12:'D5'},
+                   {0:'A4',2:'C5',4:'E5',6:'D5',8:'C5',10:'A4',12:'E4'},
+                   {0:'F4',2:'A4',4:'C5',6:'A4',8:'C5',10:'F5',12:'E5'},
+                   {0:'D5',2:'B4',4:'G4',6:'B4',8:'D5',12:'G5'},
+                   {0:'A5',4:'E5',8:'C5',12:'A4'} ]},
+        B:{ chords:['Dm','Em','F','G','F','Em','Dm','E'],
+            lead:[ {0:'D5',3:'F5',6:'A5',8:'F5',12:'E5'},
+                   {0:'E5',3:'G5',6:'B5',8:'G5',12:'E5'},
+                   {0:'F5',2:'E5',4:'D5',6:'C5',8:'A4',12:'C5'},
+                   {0:'D5',2:'G5',4:'B5',8:'A5',12:'G5'},
+                   {0:'A5',4:'F5',8:'C5',12:'F5'},
+                   {0:'G5',4:'E5',8:'B4',12:'E5'},
+                   {0:'F5',2:'D5',4:'A4',6:'D5',8:'F5',12:'A5'},
+                   {0:'G#5',4:'B5',8:'E5',10:'G#5',12:'B5'} ]}
+      }},
+
+    /* ---- 2. BLADE SALAD : a turbo grenading itself at 90k rpm, as music.
+         D PHRYGIAN - the mode with a flat second, so the Eb sits a semitone above
+         the tonic and never stops grinding against it. The melody leans on that Eb
+         and on G# (the tritone) before anything resolves. 92 BPM, triangle lead an
+         octave down, 2 kHz lid, sine sub-bass on whole notes, half-time kit, no
+         hats, and a long high-feedback echo that smears every note into the next. */
+    { id:'blade', name:'BLADE SALAD',
+      bpm:{idle:88, live:92, astral:96},
+      cutoff:2000, vol:{idle:.18, live:.20},
+      delay:{time:.52, fb:.55, wet:.34},
+      lead:{wave:'tri', peak:.20, twin:-14, twinPeak:.10, oct:-1, gate:1.0},
+      arp :{wave:'p50', peak:.036, idlePeak:.040, oct:0, every:2, idleEvery:8, gate:1.6},
+      bass:{wave:'sine', peak:.34, idlePeak:.34, len:5, idleLen:8, pat:PAT_SLOW},
+      drums:{on:true, gain:.40, kick:[0,10], snare:[8], hat:0, hatHz:5000,
+             kickHi:100, kickLo:32, snareHz:700, body:120, fill:false},
+      song:{
+        A:{ chords:['Dm','Dm','Eb','Eb','Dm','Dm','Bb','A'],
+            lead:[ {0:'D4',8:'F4'},
+                   {0:'A4',8:'F4'},
+                   {0:'D#5',8:'D5'},          /* b2 grinding down onto the tonic */
+                   {0:'A#4',8:'G4'},
+                   {0:'D5',8:'F5'},
+                   {0:'G#4',8:'A4'},          /* tritone crawling up to the fifth */
+                   {0:'F4',8:'D5'},
+                   {0:'C#5',8:'A4'} ]},
+        B:{ chords:['Gm','Gm','Dm','Dm','Eb','Bb','A','A'],
+            lead:[ {0:'G4',8:'A#4'},
+                   {0:'D5',8:'A#4'},
+                   {0:'A4',8:'F4'},
+                   {0:'D4',8:'A4'},
+                   {0:'D#5',6:'D5',10:'A#4'},
+                   {0:'F5',8:'D5'},
+                   {0:'C#5',8:'G4'},          /* the tritone inside the V chord */
+                   {0:'A4',8:'C#5'} ]}
+      }},
+
+    /* ---- 3. CENTROID : profile peaks squashed to blocky sticks.
+         D MAJOR, so it shares no key centre and no scale with FT-BOARD - bright
+         bedroom J-pop on the royal-road line (G-A-F#m-Bm) and the pop canon.
+         Plain square lead, no detune, no vibrato, no glide: every note is a hard
+         staccato block. The hook is syncopated (hits on 0-3-6-8-11-14 rather than
+         straight eighths) so it phrases nothing like the FT-BOARD tune. 120 BPM. */
+    { id:'centroid', name:'CENTROID',
+      bpm:{idle:118, live:120, astral:126},
+      cutoff:7600, vol:{idle:.15, live:.16},
+      delay:{time:.25, fb:.18, wet:.12},
+      lead:{wave:'sq', peak:.105, twin:0, twinPeak:0, oct:0, gate:.52},
+      arp :{wave:'p25', peak:.05, idlePeak:.052, oct:1, every:2, idleEvery:4, gate:.42},
+      bass:{wave:'p50', peak:.20, idlePeak:.20, len:.9, idleLen:6, pat:PAT_POP},
+      drums:{on:true, gain:.50, kick:[0,8], snare:[4,12], hat:2, hatHz:8200,
+             kickHi:160, kickLo:48, snareHz:1800, body:200, fill:true},
+      song:{
+        A:{ chords:['G','A','Fsm','Bm','G','A','Fsm','Bm'],
+            lead:[ {0:'B4',3:'D5',6:'G5',8:'F#5',11:'D5',14:'B4'},
+                   {0:'C#5',3:'E5',6:'A5',8:'G5',11:'E5',14:'C#5'},
+                   {0:'A4',3:'C#5',6:'F#5',8:'E5',11:'C#5',14:'A4'},
+                   {0:'B4',3:'F#5',6:'D5',10:'B4',12:'C#5',14:'D5'},
+                   {0:'D5',3:'G5',6:'B5',8:'A5',11:'F#5',14:'D5'},
+                   {0:'E5',3:'A5',6:'C#6',8:'B5',11:'A5',14:'G5'},
+                   {0:'F#5',4:'E5',6:'C#5',8:'A4',12:'C#5'},
+                   {0:'D5',3:'B4',6:'F#4',10:'A4',12:'B4'} ]},
+        B:{ chords:['D','A','Bm','Fsm','G','D','G','A'],
+            lead:[ {0:'F#5',3:'A5',6:'D6',8:'A5',11:'F#5',14:'E5'},
+                   {0:'E5',3:'C#5',6:'E5',8:'A5',11:'G5',14:'E5'},
+                   {0:'D5',3:'F#5',6:'B5',8:'F#5',11:'D5',14:'B4'},
+                   {0:'C#5',3:'A4',6:'C#5',8:'F#5',12:'E5'},
+                   {0:'B4',3:'D5',6:'G5',8:'B5',11:'A5',14:'G5'},
+                   {0:'F#5',4:'A5',8:'D5',12:'F#5'},
+                   {0:'G5',3:'F#5',6:'E5',8:'D5',12:'B4'},
+                   {0:'C#5',3:'E5',6:'A5',8:'E5',10:'C#5',12:'A4',14:'B4'} ]}
+      }}
+  ];
+
+  const ORDER=['A','A','B','A'];
+  // melody maps -> per-step note whose length runs to the next note
+  for(const st of STYLES)
+    for(const s of Object.values(st.song)){
+      s.leadSteps=s.lead.map(bar=>{
+        const ks=Object.keys(bar).map(Number).sort((a,b)=>a-b), out={};
+        ks.forEach((k,i)=>{ const nxt=i+1<ks.length?ks[i+1]:16;
+          out[k]={note:bar[k], len:Math.min(nxt-k,6)}; });
+        return out;
+      });
+    }
+
+  /* ---------------- audio graph ---------------- */
+  let ctx=null, master=null, softF=null, musicBus=null, leadBus=null, drumBus=null;
+  let dlyN=null, fbN=null, wetN=null, noiseBuf=null, W=null;
+  let timer=null, nextTime=0;
+  const pos={sec:0,bar:0,step:0};
+  let mode='idle';                     // 'idle' at the dialog, 'live' inside a session
+  let bldKey='exploris';
+
+  let on=true; try{ const v=localStorage.getItem('td2026_music'); if(v!==null) on=(v==='1'); }catch(e){}
+  let si=0;                            // always opens on STYLES[0] (FT-BOARD); the pick is per-visit
+  const P=()=>STYLES[si];
+
+  function pulse(duty,n){
+    const real=new Float32Array(n+1), imag=new Float32Array(n+1);
+    for(let i=1;i<=n;i++) imag[i]=(2/(i*Math.PI))*Math.sin(i*Math.PI*duty);
+    return ctx.createPeriodicWave(real,imag);
+  }
+
+  function build(){
+    if(ctx) return;
+    ctx=new AC();
+    master=ctx.createGain(); master.gain.value=0;
+    softF=ctx.createBiquadFilter(); softF.type='lowpass'; softF.frequency.value=P().cutoff; softF.Q.value=.6;
+    const comp=ctx.createDynamicsCompressor();
+    comp.threshold.value=-16; comp.knee.value=22; comp.ratio.value=5; comp.release.value=.25;
+    master.connect(softF).connect(comp).connect(ctx.destination);
+
+    musicBus=ctx.createGain(); musicBus.gain.value=1; musicBus.connect(master);
+    drumBus =ctx.createGain(); drumBus.gain.value=P().drums.gain; drumBus.connect(master);
+
+    // echo on the lead: cheapest way to make three oscillators sound like a band
+    leadBus=ctx.createGain(); leadBus.gain.value=1; leadBus.connect(master);
+    dlyN=ctx.createDelay(1.0); dlyN.delayTime.value=P().delay.time;
+    fbN=ctx.createGain(); fbN.gain.value=P().delay.fb;
+    wetN=ctx.createGain(); wetN.gain.value=P().delay.wet;
+    leadBus.connect(dlyN); dlyN.connect(fbN); fbN.connect(dlyN); dlyN.connect(wetN); wetN.connect(master);
+
+    noiseBuf=ctx.createBuffer(1, ctx.sampleRate*2, ctx.sampleRate);
+    const d=noiseBuf.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+
+    W={ p12:pulse(.125,24), p25:pulse(.25,24), p50:pulse(.5,24),
+        tri:'triangle', sine:'sine', sq:'square', saw:'sawtooth' };
+  }
+
+  /* ---------------- voices ---------------- */
+  function tone(waveName,f,t,dur,peak,dest,o2){
+    const opt=o2||{}, wave=W[waveName], o=ctx.createOscillator();
+    if(typeof wave==='string') o.type=wave; else o.setPeriodicWave(wave);
+    if(opt.glide){ o.frequency.setValueAtTime(f*1.06,t);
+                   o.frequency.exponentialRampToValueAtTime(f,t+.022); }
+    else o.frequency.setValueAtTime(f,t);
+    if(opt.detune) o.detune.setValueAtTime(opt.detune,t);
+    if(opt.vib && dur>.18){                                          // delayed vibrato
+      const lfo=ctx.createOscillator(); lfo.type='sine'; lfo.frequency.value=6.4;
+      const amt=ctx.createGain(); amt.gain.setValueAtTime(0,t);
+      amt.gain.linearRampToValueAtTime(opt.vib,t+.13);
+      lfo.connect(amt).connect(o.detune); lfo.start(t); lfo.stop(t+dur+.03);
+    }
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(.0001,t);
+    g.gain.linearRampToValueAtTime(peak,t+.008);
+    g.gain.exponentialRampToValueAtTime(Math.max(peak*.35,.0005),t+dur*.65);
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g).connect(dest||musicBus);
+    o.start(t); o.stop(t+dur+.03);
+  }
+  function noise(t,dur,peak,type,freq){
+    const s=ctx.createBufferSource(); s.buffer=noiseBuf; s.loop=true;
+    const f=ctx.createBiquadFilter(); f.type=type; f.frequency.value=freq;
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(peak,t); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    s.connect(f).connect(g).connect(drumBus);
+    s.start(t); s.stop(t+dur+.02);
+  }
+  function kick(t){
+    const k=P().drums, o=ctx.createOscillator(); o.type='sine';
+    o.frequency.setValueAtTime(k.kickHi,t); o.frequency.exponentialRampToValueAtTime(k.kickLo,t+.1);
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(.85,t); g.gain.exponentialRampToValueAtTime(.0001,t+.19);
+    o.connect(g).connect(drumBus); o.start(t); o.stop(t+.21);
+  }
+  function snare(t){ const k=P().drums;
+    noise(t,.15,.32,'highpass',k.snareHz); tone('tri',k.body,t,.08,.14,drumBus); }
+  function hat(t,accent){ const k=P().drums;
+    noise(t, accent?.06:.035, accent?.13:.08, 'highpass', k.hatHz); }
+
+  /* ---------------- sequencer ---------------- */
+  function stepDur(){ const b=P().bpm;
+    return 60/(mode==='live' ? (bldKey==='astral'?b.astral:b.live) : b.idle)/4; }
+
+  function scheduleStep(t){
+    const p=P(), sec=p.song[ORDER[pos.sec]], bar=pos.bar, st=pos.step;
+    const ch=sec.chords[bar], tones=CHORD[ch], live=(mode==='live'), sd=stepDur();
+
+    const b=p.bass.pat[st];
+    if(b && (live || st===0 || st===8)){
+      const f=hz(b==='5'?FIFTH[ch]:ROOT[ch])*(b==='o'?2:1);
+      tone(p.bass.wave, f, t, sd*(live?p.bass.len:p.bass.idleLen),
+           live?p.bass.peak:p.bass.idlePeak);
+    }
+
+    const every = live ? p.arp.every : p.arp.idleEvery;
+    if(st % every === 0){                                        // arpeggio bed
+      const f=hz(tones[(st+bar)%tones.length])*Math.pow(2,p.arp.oct);
+      const lvl=live?p.arp.peak:p.arp.idlePeak;
+      tone(p.arp.wave, f, t, sd*p.arp.gate, lvl);
+      if(p.arp.dbl && live)                                      // 32nd-note chord arp
+        tone(p.arp.wave, hz(tones[(st+bar+1)%tones.length])*Math.pow(2,p.arp.oct),
+             t+sd/2, sd*p.arp.gate, lvl*.8);
+    }
+
+    if(live){
+      const ev=sec.leadSteps[bar][st];
+      if(ev){
+        const L=p.lead, f=hz(ev.note)*Math.pow(2,L.oct), len=ev.len*sd*L.gate;
+        tone(L.wave, f, t, len, L.peak, leadBus, {vib:L.vib, glide:L.glide});
+        if(L.twin)                                               // detuned twin = chorus
+          tone(L.wave, f, t, len, L.twinPeak, leadBus, {detune:L.twin, glide:L.glide});
+      }
+      const k=p.drums;
+      if(k.on){
+        const fill=(k.fill && bar===7);                          // last bar of a section
+        if(k.kick.includes(st) || (fill&&st===8)) kick(t);
+        if(k.snare.includes(st) || (fill&&st>=13)) snare(t);
+        if(k.hat && st%k.hat===0) hat(t, st%4===0);
+      }
+    }
+  }
+
+  function advance(){
+    if(++pos.step>15){ pos.step=0;
+      if(++pos.bar>7){ pos.bar=0; pos.sec=(pos.sec+1)%ORDER.length; } }
+  }
+
+  function pump(){
+    while(nextTime < ctx.currentTime + .12){
+      scheduleStep(nextTime);
+      nextTime+=stepDur();
+      advance();
+    }
+  }
+
+  function start(){
+    if(!on) return;
+    build();
+    if(ctx.state==='suspended') ctx.resume();
+    master.gain.setTargetAtTime(P().vol[mode], ctx.currentTime, .8);
+    if(timer) return;
+    nextTime=ctx.currentTime+.08;
+    timer=setInterval(pump,25);
+  }
+  function stop(){
+    if(!ctx) return;
+    master.gain.setTargetAtTime(0, ctx.currentTime, .12);
+    clearInterval(timer); timer=null;
+    setTimeout(()=>{ if(!on && ctx && ctx.state==='running') ctx.suspend(); },700);
+  }
+  function applyStyle(){                                         // retune the shared graph in place
+    if(!ctx) return;
+    const p=P(), t=ctx.currentTime;
+    softF.frequency.setTargetAtTime(p.cutoff,t,.05);
+    dlyN.delayTime.setTargetAtTime(p.delay.time,t,.05);
+    fbN.gain.setTargetAtTime(p.delay.fb,t,.05);
+    wetN.gain.setTargetAtTime(p.delay.wet,t,.05);
+    drumBus.gain.setTargetAtTime(p.drums.gain,t,.05);
+    if(on) master.gain.setTargetAtTime(p.vol[mode],t,.3);
+  }
+
+  /* ---------------- sound effects ---------------- */
+  function fx(fn){ if(!on) return; build(); if(ctx.state==='suspended') ctx.resume(); fn(ctx.currentTime); }
+  const SFX={
+    connect(){ fx(t=>{ const w=P().lead.wave;
+      ['A4','C5','E5','A5'].forEach((n,i)=>tone(w,hz(n),t+i*.07,.16,.13,leadBus)); }); },
+    disconnect(){ fx(t=>{                                        // CRT power-down whine
+      const o=ctx.createOscillator(); o.type='sawtooth';
+      o.frequency.setValueAtTime(660,t); o.frequency.exponentialRampToValueAtTime(70,t+.42);
+      const g=ctx.createGain(); g.gain.setValueAtTime(.13,t); g.gain.exponentialRampToValueAtTime(.0001,t+.45);
+      o.connect(g).connect(master); o.start(t); o.stop(t+.47); }); },
+    achieve(){ fx(t=>{ const w=P().lead.wave;
+      ['C5','E5','G5','C6'].forEach((n,i)=>tone(w,hz(n),t+i*.075,.13,.14,leadBus));
+      tone(w,hz('E6'),t+.3,.42,.11,leadBus);
+      tone('p12',hz('G6'),t+.3,.42,.055,leadBus); }); },
+    enter(){ fx(t=>{                                             // terminal key click: quiet, but present
+      const o=ctx.createOscillator(); o.type='square';
+      o.frequency.setValueAtTime(1500,t); o.frequency.exponentialRampToValueAtTime(900,t+.035);
+      const g=ctx.createGain();
+      g.gain.setValueAtTime(.0001,t);
+      g.gain.linearRampToValueAtTime(.05,t+.004);
+      g.gain.exponentialRampToValueAtTime(.0001,t+.055);
+      o.connect(g).connect(ctx.destination);                     // skips the style lowpass, stays legible
+      o.start(t); o.stop(t+.07); }); }
+  };
+
+  /* ---------------- hooks used by the simulator ---------------- */
+  window.SFX=SFX;
+  window.MUSIC={
+    live(b){ mode='live'; bldKey=b;                              // Astral runs hotter
+      SFX.connect();
+      if(ctx&&on) master.gain.setTargetAtTime(P().vol.live,ctx.currentTime,.6);
+      start(); },
+    idle(){ mode='idle'; bldKey='exploris';
+      if(ctx&&on) master.gain.setTargetAtTime(P().vol.idle,ctx.currentTime,.6); }
+  };
+
+  /* ---------------- toggle, style selector, first-gesture autostart ---------------- */
+  function paint(){
+    if(btn){
+      btn.classList.toggle('off',!on);
+      if(stateEl) stateEl.textContent = on?'ON':'OFF';
+    }
+    if(styBtn){
+      styBtn.classList.toggle('off',!on);
+      if(styEl) styEl.textContent=P().name;
+    }
+  }
+  if(btn) btn.onclick=()=>{
+    on=!on;
+    try{ localStorage.setItem('td2026_music', on?'1':'0'); }catch(e){}
+    paint();
+    on ? start() : stop();
+  };
+  if(styBtn) styBtn.onclick=()=>{
+    si=(si+1)%STYLES.length;
+    paint(); applyStyle();
+    pos.sec=0; pos.bar=0; pos.step=0;                            // restart so the change is obvious
+    if(!on){ on=true; try{ localStorage.setItem('td2026_music','1'); }catch(e){} paint(); }
+    if(ctx) nextTime=ctx.currentTime+.05;
+    start();
+  };
+  paint();
+
+  const wake=e=>{                                                // browsers block audio until a gesture
+    if(e && e.target && e.target.closest && e.target.closest('#sndBtn,#styleBtn')) return;
+    if(on) start();
+  };
+  document.addEventListener('pointerdown',wake,{once:true});
+  document.addEventListener('keydown',wake,{once:true});
+
+  // background tabs throttle setInterval to ~1 Hz, which shreds a 120 ms lookahead: park it instead
+  let parked=false;
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden){ if(timer){ parked=true; stop(); } }
+    else if(parked){ parked=false; start(); }
+  });
+})();
+</script>
