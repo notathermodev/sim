@@ -1682,16 +1682,30 @@ refreshDeck();
     /* D phrygian - BLADE SALAD */
     Eb:['D#4','G4','A#4'], Bb:['A#3','D4','F4'], Gm:['G3','A#3','D4'], A:['A3','C#4','E4'],
     /* D major - CENTROID */
-    D:['D4','F#4','A4'], Bm:['B3','D4','F#4'], Fsm:['F#3','A3','C#4']
+    D:['D4','F#4','A4'], Bm:['B3','D4','F#4'], Fsm:['F#3','A3','C#4'],
+    /* sevenths + a dominant, for the jazzier new styles */
+    Cma7:['C4','E4','G4','B4'], Dm7:['D4','F4','A4','C5'], Em7:['E4','G4','B4','D5'],
+    Fma7:['F4','A4','C5','E5'], G7:['G3','B3','D4','F4'],  Am7:['A3','C4','E4','G4'],
+    Bm7:['B3','D4','F#4','A4'], Gm7:['G3','A#3','D4','F4'], Bbma7:['A#3','D4','F4','A4'],
+    C7:['C4','E4','G4','A#4'],  B7:['B3','D#4','F#4','A4']
   };
   const ROOT ={Am:'A2',F:'F2',C:'C3',G:'G2',Dm:'D3',Em:'E2',E:'E2',
-               Eb:'D#3',Bb:'A#2',Gm:'G2',A:'A2', D:'D3',Bm:'B2',Fsm:'F#2'};
+               Eb:'D#3',Bb:'A#2',Gm:'G2',A:'A2', D:'D3',Bm:'B2',Fsm:'F#2',
+               Cma7:'C3',Dm7:'D3',Em7:'E3',Fma7:'F3',G7:'G2',Am7:'A2',
+               Bm7:'B2',Gm7:'G2',Bbma7:'A#2',C7:'C3',B7:'B2'};
   const FIFTH={Am:'E3',F:'C3',C:'G3',G:'D3',Dm:'A3',Em:'B2',E:'B2',
-               Eb:'A#3',Bb:'F3',Gm:'D3',A:'E3', D:'A3',Bm:'F#3',Fsm:'C#3'};
+               Eb:'A#3',Bb:'F3',Gm:'D3',A:'E3', D:'A3',Bm:'F#3',Fsm:'C#3',
+               Cma7:'G3',Dm7:'A3',Em7:'B3',Fma7:'C4',G7:'D3',Am7:'E3',
+               Bm7:'F#3',Gm7:'D3',Bbma7:'F3',C7:'G3',B7:'F#3'};
 
   const PAT_8TH =['r',null,'r',null,'o',null,'r',null,'r',null,'5',null,'o',null,'r',null];
   const PAT_SLOW=['r',null,null,null,null,null,null,null,'5',null,null,null,null,null,null,null];
   const PAT_POP =['r',null,'r',null,'r',null,'o',null,'r',null,'r',null,'5',null,'o',null];
+  const PAT_BOSSA=['r',null,null,'5',null,null,'r',null,'o',null,null,'5',null,null,'o',null];
+  const PAT_MUZAK=['r',null,null,null,'5',null,null,null,'o',null,null,null,'5',null,null,null];
+  const PAT_DRONE=['r',null,null,null,null,null,null,null,null,null,null,null,null,null,null,null];
+  const PAT_WALK =['r',null,'5',null,'o',null,'5',null,'r',null,'5',null,'o',null,'5',null];
+  const PAT_TRAP =['r',null,null,null,null,null,'o',null,'r',null,null,'5',null,null,null,null];
 
   /* ================= STYLES =================
      Each entry is a whole soundtrack: tone colours, mix, drum kit and song.
@@ -1699,7 +1713,7 @@ refreshDeck();
   const STYLES=[
 
     /* ---- 1. FT-BOARD : the original. Driving A-minor pulse chiptune. ---- */
-    { id:'ft', name:'FT-BOARD',
+    { id:'ft', name:'FT-BOARD', desc:"Driving pulse-wave chiptune",
       bpm:{idle:132, live:132, astral:146},
       cutoff:5200, vol:{idle:.15, live:.17},
       delay:{time:.27, fb:.30, wet:.20},
@@ -1735,7 +1749,7 @@ refreshDeck();
          and on G# (the tritone) before anything resolves. 92 BPM, triangle lead an
          octave down, 2 kHz lid, sine sub-bass on whole notes, half-time kit, no
          hats, and a long high-feedback echo that smears every note into the next. */
-    { id:'blade', name:'BLADE SALAD',
+    { id:'blade', name:'BLADE SALAD', desc:"A turbo grenading itself at 90k rpm, as music",
       bpm:{idle:88, live:92, astral:96},
       cutoff:2000, vol:{idle:.18, live:.20},
       delay:{time:.52, fb:.55, wet:.34},
@@ -1771,7 +1785,7 @@ refreshDeck();
          Plain square lead, no detune, no vibrato, no glide: every note is a hard
          staccato block. The hook is syncopated (hits on 0-3-6-8-11-14 rather than
          straight eighths) so it phrases nothing like the FT-BOARD tune. 120 BPM. */
-    { id:'centroid', name:'CENTROID',
+    { id:'centroid', name:'CENTROID', desc:"blocky square-wave J-pop, hard staccato",
       bpm:{idle:118, live:120, astral:126},
       cutoff:7600, vol:{idle:.15, live:.16},
       delay:{time:.25, fb:.18, wet:.12},
@@ -1799,6 +1813,249 @@ refreshDeck();
                    {0:'F#5',4:'A5',8:'D5',12:'F#5'},
                    {0:'G5',3:'F#5',6:'E5',8:'D5',12:'B4'},
                    {0:'C#5',3:'E5',6:'A5',8:'E5',10:'C#5',12:'A4',14:'B4'} ]}
+      }},
+
+    /* ---- 4. AUTOTUNE : a robotic pitch-corrected croon. Saw lead with heavy
+         portamento so every note SLIDES into the next (the literal autotune/talkbox
+         signature), long sustained tones, light swing. C major. Distinctive by the
+         glide, not the notes. ---- */
+    { id:'autotune', name:'AUTOTUNE', desc:"deactivated, pitch-sliding autotune croon", off:true, swing:.12,   // deactivated - porta reused in DIS TRACK
+      bpm:{idle:96, live:100, astral:106},
+      cutoff:4600, vol:{idle:.15, live:.16},
+      delay:{time:.30, fb:.24, wet:.18},
+      lead:{wave:'saw', peak:.12, twin:-6, twinPeak:.05, oct:0, gate:1.05, vib:6, porta:true},
+      arp :{wave:'p12', peak:.04, idlePeak:.04, oct:0, every:4, idleEvery:8, gate:1.3},
+      bass:{wave:'sine', peak:.26, idlePeak:.26, len:2.5, idleLen:7, pat:PAT_MUZAK},
+      drums:{on:true, gain:.36, kick:[0,6,10], snare:[4,12], hat:2, hatHz:8000,
+             kickHi:150, kickLo:44, snareHz:1600, body:190, fill:false},
+      song:{
+        A:{ chords:['Cma7','Am7','Fma7','G7','Cma7','Am7','Dm7','G7'],
+            lead:[ {0:'E5',8:'G5'}, {0:'A5',8:'E5'}, {0:'C5',8:'A5'}, {0:'B4',8:'D5'},
+                   {0:'E5',8:'C5'}, {0:'C5',8:'A4'}, {0:'F5',8:'A5'}, {0:'G5',8:'D5'} ]},
+        B:{ chords:['Fma7','Em7','Dm7','G7','Cma7','Am7','Dm7','G7'],
+            lead:[ {0:'A5',8:'C6'}, {0:'B5',8:'G5'}, {0:'A5',8:'F5'}, {0:'D5',8:'G5'},
+                   {0:'E5',8:'G5'}, {0:'E5',8:'C5'}, {0:'F5',8:'D5'}, {0:'D5',8:'B4'} ]}
+      }},
+
+    /* ---- 5. ISOLATION WINDOW : Fast and aggressive - longish
+         saw notes hammered into a hard strobe by the chop gate (8 flashes a note), like
+         the quad's isolation window slamming open and shut. Four-on-floor, D minor. ---- */
+    { id:'isolation', name:'ISOLATION WINDOW', desc:"Dance tracks are better with stepped NCE",
+      bpm:{idle:138, live:150, astral:160},
+      cutoff:7000, vol:{idle:.16, live:.18},
+      delay:{time:.16, fb:.22, wet:.12},
+      lead:{wave:'saw', peak:.11, twin:-8, twinPeak:.06, oct:0, gate:1.05, chop:5, chopRamp:1.1, swell:.07},
+      arp :{wave:'p25', peak:.05, idlePeak:.05, oct:1, every:2, idleEvery:4, gate:.4},
+      bass:{wave:'saw', peak:.24, idlePeak:.22, len:1.0, idleLen:5, pat:PAT_8TH},
+      drums:{on:true, gain:.55, kick:[0,4,8,12], snare:[4,12], hat:2, hatHz:8800,
+             kickHi:170, kickLo:50, snareHz:2100, body:220, fill:true},
+      song:{
+        A:{ chords:['Dm','Dm','Bb','A','Dm','Gm','A','A'],
+            lead:[ {0:'D5',8:'F5'}, {0:'A4',8:'D5'}, {0:'F5',8:'D5'}, {0:'E5',8:'C#5'},
+                   {0:'D5',8:'A4'}, {0:'A#4',8:'D5'}, {0:'C#5',8:'E5'}, {0:'A4',8:'E5'} ]},
+        B:{ chords:['Dm','C','Bb','A','Dm','Gm','A','A'],
+            lead:[ {0:'F5',8:'A5'}, {0:'E5',8:'G5'}, {0:'D5',8:'F5'}, {0:'C#5',8:'E5'},
+                   {0:'D5',8:'F5'}, {0:'D5',8:'A#4'}, {0:'E5',8:'C#5'}, {0:'A4',8:'E5'} ]}
+      }},
+
+    /* ---- 6. BAKE-OUT : lofi spectra to relax / acquire to. Rolling Rhodes comp
+         (arp.shape), walking bass, syncopated hook - now pitched a bit lower. Swing,
+         jazzy sevenths, boom-bap. E minor. ---- */
+    { id:'bakeout', name:'BAKE-OUT', desc:"lofi spectra to relax / acquire to", swing:.28,
+      bpm:{idle:80, live:82, astral:86},
+      cutoff:3000, vol:{idle:.16, live:.17},
+      delay:{time:.36, fb:.28, wet:.22},
+      lead:{wave:'tri', peak:.12, twin:-4, twinPeak:.05, oct:0, gate:.9, vib:6},
+      arp :{wave:'p25', peak:.05, idlePeak:.05, oct:0, every:2, idleEvery:4, gate:1.0,
+            shape:[[0,0],[2,0],[1,0],[2,0],[0,1],[2,0],[1,0],[2,0]]},
+      bass:{wave:'sine', peak:.26, idlePeak:.26, len:1.1, idleLen:6, pat:PAT_WALK},
+      drums:{on:true, gain:.40, kick:[0,10], snare:[4,12], hat:2, hatHz:7000,
+             kickHi:140, kickLo:42, snareHz:1400, body:175, fill:false},
+      song:{
+        A:{ chords:['Em7','Am7','Cma7','Bm7','Em7','Am7','Cma7','B7'],
+            lead:[ {0:'B4',3:'E5',6:'B4',10:'G4',14:'A4'},
+                   {2:'A4',6:'C5',9:'E5',12:'C5'},
+                   {0:'E5',4:'C5',7:'E5',10:'G5',14:'A5'},
+                   {0:'F#5',4:'D5',8:'B4',12:'F#4'},
+                   {0:'B4',3:'A4',6:'G4',10:'B4',14:'E5'},
+                   {2:'E5',6:'C5',9:'A4',12:'G4'},
+                   {0:'G4',4:'B4',7:'E5',11:'C5',14:'G4'},
+                   {0:'A#4',4:'D5',8:'F#5',12:'D5'} ]},
+        B:{ chords:['Am7','Cma7','Bm7','Em7','Am7','Cma7','B7','Em7'],
+            lead:[ {0:'A4',3:'C5',6:'E5',10:'C5',14:'A4'},
+                   {2:'E5',6:'C5',9:'G4',12:'E5'},
+                   {0:'D5',4:'B4',7:'D5',10:'F#5',14:'A5'},
+                   {0:'E5',4:'B4',8:'G4',12:'B4'},
+                   {0:'C5',3:'A4',6:'E4',10:'C5',14:'E5'},
+                   {2:'G5',6:'E5',9:'C5',12:'G4'},
+                   {0:'D5',4:'A#4',8:'F#4',12:'D5'},
+                   {0:'B4',4:'E5',7:'G4',11:'B4',14:'G4'} ]}
+      }},
+
+    /* ---- 7. SPACE CHARGE : the after-hours cleanroom rave. Saw stabs, four-on-floor,
+         the ions are having a better night than you. A minor. (Space charge = too many
+         ions crowding the trap = too many bodies in the room.) ---- */
+    { id:'spacecharge', name:'SPACE CHARGE', desc:"the after-hours cleanroom rave",
+      bpm:{idle:168, live:174, astral:182},
+      cutoff:9000, vol:{idle:.16, live:.17},
+      delay:{time:.18, fb:.25, wet:.14},
+      lead:{wave:'saw', peak:.10, twin:-12, twinPeak:.05, oct:0, gate:.6},
+      arp :{wave:'saw', peak:.05, idlePeak:.05, oct:1, every:1, idleEvery:4, gate:.4, dbl:true},
+      bass:{wave:'saw', peak:.24, idlePeak:.22, len:1.1, idleLen:5, pat:PAT_8TH},
+      drums:{on:true, gain:.60, kick:[0,4,8,12], snare:[4,12], hat:2, hatHz:9000,
+             kickHi:175, kickLo:52, snareHz:2200, body:230, fill:true},
+      song:{
+        A:{ chords:['Am','F','C','G','Am','F','G','E'],
+            lead:[ {0:'A4',4:'E5',8:'A5',12:'E5'},
+                   {0:'A4',4:'C5',8:'F5',12:'C5'},
+                   {0:'G4',4:'C5',8:'E5',12:'G5'},
+                   {0:'B4',4:'D5',8:'G5',12:'D5'},
+                   {0:'A5',4:'E5',8:'C5',12:'A4'},
+                   {0:'F5',4:'C5',8:'A4',12:'F4'},
+                   {0:'G5',4:'D5',8:'B4',12:'G4'},
+                   {0:'E5',4:'B4',8:'G#4',12:'E4'} ]},
+        B:{ chords:['Dm','Am','F','E','Dm','F','E','E'],
+            lead:[ {0:'D5',4:'A5',8:'F5',12:'D5'},
+                   {0:'A4',4:'E5',8:'A5',12:'C5'},
+                   {0:'A5',4:'F5',8:'C5',12:'A4'},
+                   {0:'E5',4:'G#5',8:'B5',12:'E5'},
+                   {0:'F5',4:'D5',8:'A4',12:'D5'},
+                   {0:'C5',4:'F5',8:'A5',12:'F5'},
+                   {0:'B4',4:'E5',8:'G#5',12:'B5'},
+                   {0:'E5',4:'E5',8:'B4',12:'E5'} ]}
+      }},
+
+    /* ---- 9. HARD RESET : a triumphant jingle, now warmer and sparser - triangle
+         instead of piercing sine bells, mid register, no doubled arp, room to breathe.
+         Scored over the XP skin's own victory while you kick ftapp down the stairs.
+         D major. ---- */
+    { id:'hardreset', name:'HARD RESET', desc:"deactivated, bright victory jingle, couldn't make not annoying", off:true,
+      bpm:{idle:120, live:128, astral:134},
+      cutoff:6000, vol:{idle:.15, live:.16},
+      delay:{time:.26, fb:.20, wet:.15},
+      lead:{wave:'tri', peak:.12, twin:0, twinPeak:0, oct:0, gate:.55},
+      arp :{wave:'p25', peak:.045, idlePeak:.045, oct:0, every:4, idleEvery:8, gate:.7},
+      bass:{wave:'tri', peak:.24, idlePeak:.24, len:1.4, idleLen:6, pat:PAT_POP},
+      drums:{on:true, gain:.40, kick:[0,8], snare:[4,12], hat:4, hatHz:8000,
+             kickHi:165, kickLo:50, snareHz:1900, body:210, fill:true},
+      song:{
+        A:{ chords:['D','G','A','D','G','A','Bm','A'],
+            lead:[ {0:'D5',4:'F#5',8:'A5'}, {0:'B5',8:'G5'}, {0:'A5',4:'E5',8:'C#5'},
+                   {0:'D5',8:'F#5'}, {0:'G5',4:'B5',8:'D5'}, {0:'C#5',4:'E5',8:'A5'},
+                   {0:'B4',4:'D5',8:'F#5'}, {0:'E5',8:'A4'} ]},
+        B:{ chords:['G','D','Em','A','D','Bm','A','D'],
+            lead:[ {0:'D5',4:'G5',8:'B5'}, {0:'A5',8:'F#5'}, {0:'E5',4:'G5',8:'B5'},
+                   {0:'C#5',4:'E5',8:'A5'}, {0:'F#5',4:'D5',8:'A4'}, {0:'B4',4:'F#5',8:'D5'},
+                   {0:'E5',4:'A5',8:'C#6'}, {0:'D5',8:'D5'} ]}
+      }},
+
+    /* ---- 10. DEVELOP MODE : heist tiptoe, now with swing and a chromatic creep -
+         the lead sneaks up and down by semitones before it leaps, staccato square
+         pizzicato over a walking bass. E minor. (Nods to the sim's develop / develop_end
+         gate.) ---- */
+    { id:'develop', name:'ROOT SHELL', desc:"chromatic heist tiptoe, swung", swing:.3,
+      bpm:{idle:104, live:108, astral:114},
+      cutoff:5000, vol:{idle:.15, live:.16},
+      delay:{time:.24, fb:.20, wet:.12},
+      lead:{wave:'sq', peak:.10, twin:0, twinPeak:0, oct:0, gate:.32},
+      arp :{wave:'p12', peak:.04, idlePeak:.042, oct:1, every:4, idleEvery:8, gate:.5},
+      bass:{wave:'tri', peak:.22, idlePeak:.22, len:.8, idleLen:5, pat:PAT_WALK},
+      drums:{on:true, gain:.34, kick:[0,10], snare:[4,12], hat:2, hatHz:8500,
+             kickHi:150, kickLo:46, snareHz:2400, body:220, fill:false},
+      song:{
+        A:{ chords:['Em','Am','Em','B7','Em','Am','Fsm','B7'],
+            lead:[ {0:'E4',3:'F#4',6:'G4',9:'G#4',12:'A4'},
+                   {0:'B4',4:'A4',8:'C5',12:'B4'},
+                   {0:'E5',3:'D#5',6:'E5',12:'B4'},
+                   {0:'A#4',4:'B4',8:'D#5',12:'F#5'},
+                   {0:'E4',3:'F#4',6:'G4',9:'A4',12:'B4'},
+                   {0:'C5',4:'B4',8:'A4',12:'E5'},
+                   {0:'F#5',3:'F5',6:'E5',12:'C#5'},
+                   {0:'D#5',6:'F#5',10:'A4',12:'B4'} ]},
+        B:{ chords:['Am','Em','C','B7','Am','Em','Fsm','B7'],
+            lead:[ {0:'A4',3:'A#4',6:'B4',9:'C5',12:'E5'},
+                   {0:'B4',4:'G4',8:'E4',12:'G4'},
+                   {0:'C5',3:'C#5',6:'D5',9:'D#5',12:'E5'},
+                   {0:'F#5',4:'D#5',8:'B4',12:'A4'},
+                   {0:'E5',3:'D#5',6:'E5',12:'C5'},
+                   {0:'B4',4:'A4',8:'G4',12:'E4'},
+                   {0:'F#4',3:'G4',6:'F#4',12:'A4'},
+                   {0:'A#4',4:'B4',8:'F#4',12:'B4'} ]}
+      }},
+    /* ---- 11. DIS TRACK : a chiptune rap diss on DIS (Dynamic Integrated Solutions). Hard version, buzzy saw lead
+         that slides (portamento taunts), faster relentless riff with a phrygian b2 sneer,
+         driving kick, 16th hats, hard backbeat. A minor / harmonic-minor E. ---- */
+    { id:'dis', name:'DIS TRACK', desc:"Dis track dissing D.I.S.",
+      bpm:{idle:92, live:96, astral:102},
+      cutoff:7500, vol:{idle:.17, live:.19},
+      delay:{time:.15, fb:.20, wet:.11},
+      lead:{wave:'saw', peak:.12, twin:0, twinPeak:0, oct:0, gate:.45, porta:true},
+      arp :{wave:'p25', peak:.045, idlePeak:.045, oct:0, every:2, idleEvery:4, gate:.4},
+      bass:{wave:'sine', peak:.36, idlePeak:.34, len:1.8, idleLen:6, pat:PAT_TRAP},
+      drums:{on:true, gain:.62, kick:[0,3,6,10], snare:[4,12], hat:1, hatHz:9500,
+             kickHi:150, kickLo:38, snareHz:2000, body:200, fill:true},
+      song:{
+        A:{ chords:['Am','Am','F','E','Am','Dm','E','E'],
+            lead:[ {0:'A4',2:'A4',4:'C5',6:'B4',8:'A4',12:'E5'},
+                   {0:'A4',4:'C5',6:'D5',8:'C5',10:'B4',12:'A4'},
+                   {0:'F5',4:'C5',6:'A4',8:'F4',12:'A4'},
+                   {0:'A#4',4:'G#4',8:'E5',10:'D#5',12:'B4'},
+                   {0:'A4',2:'C5',4:'E5',6:'C5',8:'A4',12:'B4'},
+                   {0:'D5',4:'F5',6:'A4',8:'D5',12:'F5'},
+                   {0:'E5',4:'D#5',6:'B4',8:'G#4',12:'E4'},
+                   {0:'E4',4:'G#4',8:'B4',12:'E5'} ]},
+        B:{ chords:['Am','G','F','E','Dm','Am','E','E'],
+            lead:[ {0:'E5',2:'A4',4:'C5',8:'E5',12:'A5'},
+                   {0:'D5',4:'G4',6:'B4',8:'D5',12:'G5'},
+                   {0:'C5',4:'A4',6:'F4',8:'C5',12:'F5'},
+                   {0:'B4',4:'G#4',8:'E4',10:'A#4',12:'B4'},
+                   {0:'D5',2:'F5',4:'A5',8:'D5',12:'A4'},
+                   {0:'C5',4:'E5',6:'A4',8:'C5',12:'E5'},
+                   {0:'G#5',4:'E5',6:'B4',8:'G#4',12:'E4'},
+                   {0:'E5',4:'D#5',8:'B4',12:'G#4'} ]}
+      }},
+    /* ---- 12. TRANSIENT : melodic and flowing, no drums, no separate lead. The tune is
+         COMPOSED FIRST as a 32-bar structural line (sec.mel, one note per bar, arching to
+         a B5 climax in the B section); the rapid figuration then rolls up to hit each of
+         those notes at its accented apex and bridges between them - the melody emerges
+         from the cascade itself, Rustle-of-Spring style. Fast. G major. Named for the
+         Orbitrap's raw oscillating image-current transient. ---- */
+    { id:'transient', name:'TRANSIENT', desc:"flowing Rustle-of-Spring cascade",
+      bpm:{idle:160, live:172, astral:180},
+      cutoff:6800, vol:{idle:.20, live:.24},
+      delay:{time:.22, fb:.26, wet:.20},
+      lead:{wave:'tri', peak:.0, twin:0, twinPeak:0, oct:0, gate:.4},
+      arp :{wave:'tri', peak:.065, idlePeak:.06, oct:0, every:1, idleEvery:1, gate:.5,
+            shape:[[0,0],[1,0],[2,0],[0,1],[1,1],[2,1],[1,2],[0,2,2.0,1],[2,1],[1,1],[0,1],[2,0],[1,0],[0,0],[1,0],[2,0]]},
+      bass:{wave:'sine', peak:.20, idlePeak:.20, len:1.4, idleLen:6, pat:PAT_MUZAK},
+      drums:{on:false, gain:0, kick:[], snare:[], hat:0, hatHz:8000,
+             kickHi:150, kickLo:44, snareHz:1600, body:190, fill:false},
+      song:{
+        A:{ chords:['G','D','Em','C','G','D','C','D'],
+            mel:['D5','F#5','G5','E5','D5','A5','G5','F#5'],
+            lead:[ {},{},{},{},{},{},{},{} ]},
+        B:{ chords:['C','G','Am','D','Em','C','D','G'],
+            mel:['E5','D5','E5','F#5','G5','G5','A5','B5'],
+            lead:[ {},{},{},{},{},{},{},{} ]}
+      }},
+
+    /* ---- 8. GROUND LOOP : not music. One continuous 60 Hz mains hum with its
+         harmonics and a slow beat - the electrical noise the instrument is supposed to
+         reject, left running. `hum:true` makes the engine skip the sequencer entirely. ---- */
+    { id:'groundloop', name:'GROUND LOOP', desc:"Hans screwed up the wiring again, didn't he?", hum:true,
+      bpm:{idle:60, live:60, astral:60},
+      cutoff:1400, vol:{idle:.28, live:.28},
+      delay:{time:.50, fb:.0, wet:.0},
+      lead:{wave:'sine', peak:.0, twin:0, twinPeak:0, oct:0, gate:1},
+      arp :{wave:'sine', peak:.0, idlePeak:.0, oct:0, every:8, idleEvery:8, gate:1},
+      bass:{wave:'sine', peak:.0, idlePeak:.0, len:8, idleLen:8, pat:PAT_DRONE},
+      drums:{on:false, gain:.0, kick:[], snare:[], hat:0, hatHz:3000,
+             kickHi:90, kickLo:30, snareHz:800, body:100, fill:false},
+      song:{
+        A:{ chords:['Am','Am','Am','Am','Am','Am','Am','Am'],
+            lead:[ {},{},{},{},{},{},{},{} ]},
+        B:{ chords:['Am','Am','Am','Am','Am','Am','Am','Am'],
+            lead:[ {},{},{},{},{},{},{},{} ]}
       }}
   ];
 
@@ -1823,8 +2080,11 @@ refreshDeck();
   let bldKey='exploris';
 
   let on=true; try{ const v=localStorage.getItem('td2026_music'); if(v!==null) on=(v==='1'); }catch(e){}
-  let si=0;                            // always opens on STYLES[0] (FT-BOARD); the pick is per-visit
-  const P=()=>STYLES[si];
+  const ACTIVE=STYLES.filter(x=>!x.off);   // `off:true` styles stay in the page but out of rotation
+  let si=0;                            // always opens on ACTIVE[0] (FT-BOARD); the pick is per-visit
+  const P=()=>ACTIVE[si];
+  let lastLead=0;                      // last lead frequency, for portamento slides
+  let humNodes=null;                   // GROUND LOOP: persistent mains-hum oscillators
 
   function pulse(duty,n){
     const real=new Float32Array(n+1), imag=new Float32Array(n+1);
@@ -1863,7 +2123,9 @@ refreshDeck();
   function tone(waveName,f,t,dur,peak,dest,o2){
     const opt=o2||{}, wave=W[waveName], o=ctx.createOscillator();
     if(typeof wave==='string') o.type=wave; else o.setPeriodicWave(wave);
-    if(opt.glide){ o.frequency.setValueAtTime(f*1.06,t);
+    if(opt.portaFrom>0){ o.frequency.setValueAtTime(opt.portaFrom,t);   // slide from the previous note
+                   o.frequency.exponentialRampToValueAtTime(f,t+.08); }
+    else if(opt.glide){ o.frequency.setValueAtTime(f*1.06,t);
                    o.frequency.exponentialRampToValueAtTime(f,t+.022); }
     else o.frequency.setValueAtTime(f,t);
     if(opt.detune) o.detune.setValueAtTime(opt.detune,t);
@@ -1874,10 +2136,21 @@ refreshDeck();
       lfo.connect(amt).connect(o.detune); lfo.start(t); lfo.stop(t+dur+.03);
     }
     const g=ctx.createGain();
-    g.gain.setValueAtTime(.0001,t);
-    g.gain.linearRampToValueAtTime(peak,t+.008);
-    g.gain.exponentialRampToValueAtTime(Math.max(peak*.35,.0005),t+dur*.65);
-    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    if(opt.chop>1){                                       // gate the sustain into abrupt flashes
+      const n=opt.chop|0, seg=dur/n;                       // (ISOLATION WINDOW: MS/MS scans flickering)
+      g.gain.setValueAtTime(.0001,t);
+      for(let k=0;k<n;k++){ const ts=t+k*seg;
+        g.gain.setValueAtTime(.0001,ts);
+        g.gain.linearRampToValueAtTime(peak,ts+Math.min(.006,seg*.2));
+        g.gain.setValueAtTime(peak,ts+seg*.45);
+        g.gain.exponentialRampToValueAtTime(.0001,ts+seg*.62); }
+      g.gain.setValueAtTime(.0001,t+dur);
+    } else {
+      g.gain.setValueAtTime(.0001,t);
+      g.gain.linearRampToValueAtTime(peak,t+.008);
+      g.gain.exponentialRampToValueAtTime(Math.max(peak*.35,.0005),t+dur*.65);
+      g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    }
     o.connect(g).connect(dest||musicBus);
     o.start(t); o.stop(t+dur+.03);
   }
@@ -1906,7 +2179,9 @@ refreshDeck();
     return 60/(mode==='live' ? (bldKey==='astral'?b.astral:b.live) : b.idle)/4; }
 
   function scheduleStep(t){
-    const p=P(), sec=p.song[ORDER[pos.sec]], bar=pos.bar, st=pos.step;
+    const p=P();
+    if(p.hum) return;                        // GROUND LOOP is a continuous drone, not a sequence
+    const sec=p.song[ORDER[pos.sec]], bar=pos.bar, st=pos.step;
     const ch=sec.chords[bar], tones=CHORD[ch], live=(mode==='live'), sd=stepDur();
 
     const b=p.bass.pat[st];
@@ -1917,10 +2192,15 @@ refreshDeck();
     }
 
     const every = live ? p.arp.every : p.arp.idleEvery;
-    if(st % every === 0){                                        // arpeggio bed
-      const f=hz(tones[(st+bar)%tones.length])*Math.pow(2,p.arp.oct);
+    if(st % every === 0){                                        // arpeggio bed / figuration
       const lvl=live?p.arp.peak:p.arp.idlePeak;
-      tone(p.arp.wave, f, t, sd*p.arp.gate, lvl);
+      let ai, aoct, aacc=1, melN=null;
+      if(p.arp.shape){                                           // [toneIndex, octaveAdd, accent?, melFlag?]
+        const sp=p.arp.shape[((st/every)|0)%p.arp.shape.length]; ai=sp[0]; aoct=p.arp.oct+sp[1]; aacc=sp[2]||1;
+        if(sp[3] && sec.mel && sec.mel[bar]) melN=sec.mel[bar];  // apex = the composed melody note
+      } else { ai=st+bar; aoct=p.arp.oct; }
+      const f=melN ? hz(melN) : hz(tones[ai%tones.length])*Math.pow(2,aoct);
+      tone(p.arp.wave, f, t, sd*p.arp.gate, lvl*aacc);          // accented apex = melody-from-figuration
       if(p.arp.dbl && live)                                      // 32nd-note chord arp
         tone(p.arp.wave, hz(tones[(st+bar+1)%tones.length])*Math.pow(2,p.arp.oct),
              t+sd/2, sd*p.arp.gate, lvl*.8);
@@ -1930,9 +2210,15 @@ refreshDeck();
       const ev=sec.leadSteps[bar][st];
       if(ev){
         const L=p.lead, f=hz(ev.note)*Math.pow(2,L.oct), len=ev.len*sd*L.gate;
-        tone(L.wave, f, t, len, L.peak, leadBus, {vib:L.vib, glide:L.glide});
+        const pf=(L.porta && lastLead>0) ? lastLead : 0;         // slide from the last note
+        // build across each 8-bar section: flashes multiply + the note swells, like a
+        // dense region firing sequential MS2 scans ever faster, then resets each section
+        const cchop = L.chopRamp ? (L.chop||1) + Math.round(bar*L.chopRamp) : L.chop;
+        const sm = L.swell ? 1 + bar*L.swell : 1;
+        tone(L.wave, f, t, len, L.peak*sm, leadBus, {vib:L.vib, glide:L.glide, portaFrom:pf, chop:cchop});
         if(L.twin)                                               // detuned twin = chorus
-          tone(L.wave, f, t, len, L.twinPeak, leadBus, {detune:L.twin, glide:L.glide});
+          tone(L.wave, f, t, len, L.twinPeak*sm, leadBus, {detune:L.twin, glide:L.glide, portaFrom:pf, chop:cchop});
+        lastLead=f;
       }
       const k=p.drums;
       if(k.on){
@@ -1951,17 +2237,39 @@ refreshDeck();
 
   function pump(){
     while(nextTime < ctx.currentTime + .12){
-      scheduleStep(nextTime);
-      nextTime+=stepDur();
+      const sd=stepDur();
+      const sw=(pos.step&1 && P().swing) ? P().swing*sd : 0;    // delay the off-16ths = swing
+      scheduleStep(nextTime+sw);
+      nextTime+=sd;
       advance();
     }
   }
 
+  function startHum(){                       // steady 60 Hz mains buzz + harmonics
+    if(humNodes) return;
+    const t=ctx.currentTime, lp=ctx.createBiquadFilter();
+    lp.type='lowpass'; lp.frequency.value=420; lp.connect(master);
+    const partials=[[60,.5],[120,.10],[180,.20],[240,.06],[60.3,.18]];  // last one detuned = slow beat
+    humNodes=partials.map(([hz,lvl])=>{
+      const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=hz;
+      const g=ctx.createGain(); g.gain.value=lvl;
+      o.connect(g).connect(lp); o.start(t); return o;
+    });
+  }
+  function stopHum(){
+    if(!humNodes) return;
+    const t=ctx.currentTime; humNodes.forEach(o=>{ try{o.stop(t+.05);}catch(e){} });
+    humNodes=null;
+  }
+  function refreshHum(){ if(ctx && on && P().hum) startHum(); else stopHum(); }
+
   function start(){
     if(!on) return;
     build();
+    lastLead=0;
     if(ctx.state==='suspended') ctx.resume();
     master.gain.setTargetAtTime(P().vol[mode], ctx.currentTime, .8);
+    refreshHum();
     if(timer) return;
     nextTime=ctx.currentTime+.08;
     timer=setInterval(pump,25);
@@ -1969,6 +2277,7 @@ refreshDeck();
   function stop(){
     if(!ctx) return;
     master.gain.setTargetAtTime(0, ctx.currentTime, .12);
+    stopHum();
     clearInterval(timer); timer=null;
     setTimeout(()=>{ if(!on && ctx && ctx.state==='running') ctx.suspend(); },700);
   }
@@ -1981,6 +2290,7 @@ refreshDeck();
     wetN.gain.setTargetAtTime(p.delay.wet,t,.05);
     drumBus.gain.setTargetAtTime(p.drums.gain,t,.05);
     if(on) master.gain.setTargetAtTime(p.vol[mode],t,.3);
+    lastLead=0; refreshHum();
   }
 
   /* ---------------- sound effects ---------------- */
@@ -2024,10 +2334,12 @@ refreshDeck();
     if(btn){
       btn.classList.toggle('off',!on);
       if(stateEl) stateEl.textContent = on?'ON':'OFF';
+      btn.title='soundtrack '+(on?'on':'off')+' (synthesised in-browser)';
     }
     if(styBtn){
       styBtn.classList.toggle('off',!on);
       if(styEl) styEl.textContent=P().name;
+      styBtn.title=P().name+(P().desc?' — '+P().desc:'')+'  ·  click to change';
     }
   }
   if(btn) btn.onclick=()=>{
@@ -2037,7 +2349,7 @@ refreshDeck();
     on ? start() : stop();
   };
   if(styBtn) styBtn.onclick=()=>{
-    si=(si+1)%STYLES.length;
+    si=(si+1)%ACTIVE.length;
     paint(); applyStyle();
     pos.sec=0; pos.bar=0; pos.step=0;                            // restart so the change is obvious
     if(!on){ on=true; try{ localStorage.setItem('td2026_music','1'); }catch(e){} paint(); }
