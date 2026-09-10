@@ -1753,7 +1753,9 @@ refreshDeck();
       bpm:{idle:88, live:92, astral:96},
       cutoff:2000, vol:{idle:.18, live:.20},
       delay:{time:.52, fb:.55, wet:.34},
-      lead:{wave:'tri', peak:.20, twin:-14, twinPeak:.10, oct:-1, gate:1.0},
+      lead:{wave:'tri', peak:.20, twin:-14, twinPeak:.10, oct:-1, gate:1.0,
+            warble:{rate:2.6, depth:85}, warbleAll:{rate:4, depth:14}, slideUp:1.09},
+      grind:{level:.05, cutoff:900, grit:1300, rate:34, rev:2.6, wet:.22, dry:.4},
       arp :{wave:'p50', peak:.036, idlePeak:.040, oct:0, every:2, idleEvery:8, gate:1.6},
       bass:{wave:'sine', peak:.34, idlePeak:.34, len:5, idleLen:8, pat:PAT_SLOW},
       drums:{on:true, gain:.40, kick:[0,10], snare:[8], hat:0, hatHz:5000,
@@ -1767,7 +1769,7 @@ refreshDeck();
                    {0:'D5',8:'F5'},
                    {0:'G#4',8:'A4'},          /* tritone crawling up to the fifth */
                    {0:'F4',8:'D5'},
-                   {0:'C#5',8:'A4'} ]},
+                   {0:'C#5',8:'A4~'} ]},          /* the A that resolves the F-D-C#-A cadence howls */
         B:{ chords:['Gm','Gm','Dm','Dm','Eb','Bb','A','A'],
             lead:[ {0:'G4',8:'A#4'},
                    {0:'D5',8:'A#4'},
@@ -1776,7 +1778,7 @@ refreshDeck();
                    {0:'D#5',6:'D5',10:'A#4'},
                    {0:'F5',8:'D5'},
                    {0:'C#5',8:'G4'},          /* the tritone inside the V chord */
-                   {0:'A4',8:'C#5'} ]}
+                   {0:'A4',8:'C#5~'} ]}          /* the C# that ends the C#-G-A-C# cadence: howl + held */
       }},
 
     /* ---- 3. CENTROID : profile peaks squashed to blocky sticks.
@@ -1951,8 +1953,7 @@ refreshDeck();
 
     /* ---- 10. DEVELOP MODE : heist tiptoe, now with swing and a chromatic creep -
          the lead sneaks up and down by semitones before it leaps, staccato square
-         pizzicato over a walking bass. E minor. (Nods to the sim's develop / develop_end
-         gate.) ---- */
+         pizzicato over a walking bass. E minor. ---- */
     { id:'develop', name:'ROOT SHELL', desc:"chromatic heist tiptoe, swung", swing:.3,
       bpm:{idle:104, live:108, astral:114},
       cutoff:5000, vol:{idle:.15, live:.16},
@@ -2014,28 +2015,25 @@ refreshDeck();
                    {0:'G#5',4:'E5',6:'B4',8:'G#4',12:'E4'},
                    {0:'E5',4:'D#5',8:'B4',12:'G#4'} ]}
       }},
-    /* ---- 12. TRANSIENT : melodic and flowing, no drums, no separate lead. The tune is
-         COMPOSED FIRST as a 32-bar structural line (sec.mel, one note per bar, arching to
-         a B5 climax in the B section); the rapid figuration then rolls up to hit each of
-         those notes at its accented apex and bridges between them - the melody emerges
-         from the cascade itself, Rustle-of-Spring style. Fast. G major. Named for the
-         Orbitrap's raw oscillating image-current transient. ---- */
+    /* ---- 12. TRANSIENT : melodic and flowing, no drums, no imposed melody. A pure
+         rolling arpeggio whose HARMONY carries it - A is the Pachelbel canon progression
+         (built for flowing arpeggios, with a clear descending direction), B departs into a
+         relative-minor colour and returns. Each roll tapers toward its top so nothing
+         chirps. G major. Named for the Orbitrap's raw image-current transient. ---- */
     { id:'transient', name:'TRANSIENT', desc:"flowing Rustle-of-Spring cascade",
       bpm:{idle:160, live:172, astral:180},
-      cutoff:6800, vol:{idle:.20, live:.24},
-      delay:{time:.22, fb:.26, wet:.20},
+      cutoff:6000, vol:{idle:.32, live:.42},
+      delay:{time:.24, fb:.24, wet:.18},
       lead:{wave:'tri', peak:.0, twin:0, twinPeak:0, oct:0, gate:.4},
-      arp :{wave:'tri', peak:.065, idlePeak:.06, oct:0, every:1, idleEvery:1, gate:.5,
-            shape:[[0,0],[1,0],[2,0],[0,1],[1,1],[2,1],[1,2],[0,2,2.0,1],[2,1],[1,1],[0,1],[2,0],[1,0],[0,0],[1,0],[2,0]]},
-      bass:{wave:'sine', peak:.20, idlePeak:.20, len:1.4, idleLen:6, pat:PAT_MUZAK},
+      arp :{wave:'tri', peak:.14, idlePeak:.12, oct:0, every:1, idleEvery:1, gate:2,
+            shape:[[0,-1],[1,-1],[2,-1],[0,0],[1,0],[2,0],[0,1,.72],[1,1,.55],[2,1,.45],[1,1,.6],[0,1,.75],[2,0],[1,0],[0,0],[1,-1],[2,-1]]},
+      bass:{wave:'sine', peak:.225, idlePeak:.28, len:2.0, idleLen:6, pat:PAT_MUZAK},
       drums:{on:false, gain:0, kick:[], snare:[], hat:0, hatHz:8000,
              kickHi:150, kickLo:44, snareHz:1600, body:190, fill:false},
       song:{
-        A:{ chords:['G','D','Em','C','G','D','C','D'],
-            mel:['D5','F#5','G5','E5','D5','A5','G5','F#5'],
+        A:{ chords:['G','D','Em','Bm','C','G','C','D'],
             lead:[ {},{},{},{},{},{},{},{} ]},
-        B:{ chords:['C','G','Am','D','Em','C','D','G'],
-            mel:['E5','D5','E5','F#5','G5','G5','A5','B5'],
+        B:{ chords:['Em','Bm','C','G','Am','D','G','D'],
             lead:[ {},{},{},{},{},{},{},{} ]}
       }},
 
@@ -2066,7 +2064,9 @@ refreshDeck();
       s.leadSteps=s.lead.map(bar=>{
         const ks=Object.keys(bar).map(Number).sort((a,b)=>a-b), out={};
         ks.forEach((k,i)=>{ const nxt=i+1<ks.length?ks[i+1]:16;
-          out[k]={note:bar[k], len:Math.min(nxt-k,6)}; });
+          let nv=bar[k], wb=false;
+          if(typeof nv==='string' && nv.charAt(nv.length-1)==='~'){ wb=true; nv=nv.slice(0,-1); }
+          out[k]={note:nv, len:Math.min(nxt-k,6), warble:wb}; });
         return out;
       });
     }
@@ -2085,6 +2085,7 @@ refreshDeck();
   const P=()=>ACTIVE[si];
   let lastLead=0;                      // last lead frequency, for portamento slides
   let humNodes=null;                   // GROUND LOOP: persistent mains-hum oscillators
+  let grindNodes=null;                 // BLADE SALAD: distant turbo-bearing grind bed
 
   function pulse(duty,n){
     const real=new Float32Array(n+1), imag=new Float32Array(n+1);
@@ -2128,12 +2129,30 @@ refreshDeck();
     else if(opt.glide){ o.frequency.setValueAtTime(f*1.06,t);
                    o.frequency.exponentialRampToValueAtTime(f,t+.022); }
     else o.frequency.setValueAtTime(f,t);
+    if(opt.slideUp>1){                                              // rising scoop over the note's tail
+      o.frequency.setValueAtTime(f, t+dur*0.55);
+      o.frequency.linearRampToValueAtTime(f*opt.slideUp, t+dur);
+    }
     if(opt.detune) o.detune.setValueAtTime(opt.detune,t);
     if(opt.vib && dur>.18){                                          // delayed vibrato
       const lfo=ctx.createOscillator(); lfo.type='sine'; lfo.frequency.value=6.4;
       const amt=ctx.createGain(); amt.gain.setValueAtTime(0,t);
       amt.gain.linearRampToValueAtTime(opt.vib,t+.13);
       lfo.connect(amt).connect(o.detune); lfo.start(t); lfo.stop(t+dur+.03);
+    }
+    let didWarble=false;
+    if(opt.warble && dur>.5){                                        // deep forlorn howl, on chosen notes
+      const w=opt.warble; let ok=true;
+      if(w.pc!=null){ const midi=Math.round(69+12*Math.log2(f/440)); ok = (((midi%12)+12)%12 === w.pc); } // only this pitch class
+      if(ok && w.below!=null) ok = f < w.below;                       // optional pitch ceiling
+      if(ok){ didWarble=true;
+        const rate=(w.rate||3.2)*(0.85+Math.random()*0.3);            // unstable = sickly
+        const dep=(w.depth||55)*(0.7+Math.random()*0.6);
+        const lfo=ctx.createOscillator(); lfo.type='sine'; lfo.frequency.value=rate;
+        const amt=ctx.createGain(); amt.gain.setValueAtTime(0,t);
+        amt.gain.linearRampToValueAtTime(dep, t+Math.min(.45,dur*.35));
+        lfo.connect(amt).connect(o.detune); lfo.start(t); lfo.stop(t+dur+.03);
+      }
     }
     const g=ctx.createGain();
     if(opt.chop>1){                                       // gate the sustain into abrupt flashes
@@ -2153,6 +2172,8 @@ refreshDeck();
     }
     o.connect(g).connect(dest||musicBus);
     o.start(t); o.stop(t+dur+.03);
+    // dev hook: emit each pitched note (no-op unless the lab registers a tap)
+    if(window.__noteTap) window.__noteTap(f, t, dur, dest===leadBus?'lead':(dest===drumBus?'drum':'wash'), peak, !!opt.wmark);
   }
   function noise(t,dur,peak,type,freq){
     const s=ctx.createBufferSource(); s.buffer=noiseBuf; s.loop=true;
@@ -2197,10 +2218,12 @@ refreshDeck();
       let ai, aoct, aacc=1, melN=null;
       if(p.arp.shape){                                           // [toneIndex, octaveAdd, accent?, melFlag?]
         const sp=p.arp.shape[((st/every)|0)%p.arp.shape.length]; ai=sp[0]; aoct=p.arp.oct+sp[1]; aacc=sp[2]||1;
-        if(sp[3] && sec.mel && sec.mel[bar]) melN=sec.mel[bar];  // apex = the composed melody note
+        if(sp[3] && sec.mel && sec.mel[bar]!=null){ const mb=sec.mel[bar];   // apex = composed melody note
+          melN = Array.isArray(mb) ? mb[sp[3]-1] : mb; }                       // 4th elem = which note in the bar
       } else { ai=st+bar; aoct=p.arp.oct; }
       const f=melN ? hz(melN) : hz(tones[ai%tones.length])*Math.pow(2,aoct);
-      tone(p.arp.wave, f, t, sd*p.arp.gate, lvl*aacc);          // accented apex = melody-from-figuration
+      const amp = (melN && p.arp.melPeak!=null) ? p.arp.melPeak : lvl*aacc;  // melody note = fixed level
+      tone(p.arp.wave, f, t, sd*p.arp.gate, amp);
       if(p.arp.dbl && live)                                      // 32nd-note chord arp
         tone(p.arp.wave, hz(tones[(st+bar+1)%tones.length])*Math.pow(2,p.arp.oct),
              t+sd/2, sd*p.arp.gate, lvl*.8);
@@ -2209,15 +2232,21 @@ refreshDeck();
     if(live){
       const ev=sec.leadSteps[bar][st];
       if(ev){
-        const L=p.lead, f=hz(ev.note)*Math.pow(2,L.oct), len=ev.len*sd*L.gate;
+        const L=p.lead;
+        const eh = ev.warble ? (L.emphHold||1.6) : 1;            // marked notes: hold longer (agogic accent)
+        const ea = ev.warble ? (L.emphAccent||1.3) : 1;          //   + a touch louder
+        const f=hz(ev.note)*Math.pow(2,L.oct), len=ev.len*sd*L.gate*eh;
         const pf=(L.porta && lastLead>0) ? lastLead : 0;         // slide from the last note
         // build across each 8-bar section: flashes multiply + the note swells, like a
         // dense region firing sequential MS2 scans ever faster, then resets each section
         const cchop = L.chopRamp ? (L.chop||1) + Math.round(bar*L.chopRamp) : L.chop;
         const sm = L.swell ? 1 + bar*L.swell : 1;
-        tone(L.wave, f, t, len, L.peak*sm, leadBus, {vib:L.vib, glide:L.glide, portaFrom:pf, chop:cchop});
+        const strong = !!ev.warble;                             // '~'-marked notes
+        const wb = strong ? L.warble : L.warbleAll;             // strong howl on marked, subtle on the rest
+        const su = strong ? (L.slideUp||0) : 0;                 // marked notes scoop up at the tail
+        tone(L.wave, f, t, len, L.peak*sm*ea, leadBus, {vib:L.vib, glide:L.glide, portaFrom:pf, chop:cchop, warble:wb, wmark:strong, slideUp:su});
         if(L.twin)                                               // detuned twin = chorus
-          tone(L.wave, f, t, len, L.twinPeak*sm, leadBus, {detune:L.twin, glide:L.glide, portaFrom:pf, chop:cchop});
+          tone(L.wave, f, t, len, L.twinPeak*sm*ea, leadBus, {detune:L.twin, glide:L.glide, portaFrom:pf, chop:cchop, warble:wb, wmark:strong, slideUp:su});
         lastLead=f;
       }
       const k=p.drums;
@@ -2263,13 +2292,50 @@ refreshDeck();
   }
   function refreshHum(){ if(ctx && on && P().hum) startHum(); else stopHum(); }
 
+  function makeIR(dur,decay){           // energy-normalised noise reverb impulse
+    const len=Math.max(1,(ctx.sampleRate*dur)|0), buf=ctx.createBuffer(2,len,ctx.sampleRate);
+    for(let ch=0; ch<2; ch++){ const d=buf.getChannelData(ch);
+      let e=0; for(let i=0;i<len;i++){ d[i]=(Math.random()*2-1)*Math.pow(1-i/len, decay); e+=d[i]*d[i]; }
+      const g=e>0?1/Math.sqrt(e):1; for(let i=0;i<len;i++) d[i]*=g; }   // unit energy -> predictable wet level
+    return buf;
+  }
+  function startGrind(cfg){             // a LOUD, harsh turbo grind - heard through reverb + distance
+    if(grindNodes || !ctx) return;
+    const t=ctx.currentTime, lv=cfg.level||.28;
+    const src=ctx.createBufferSource(); src.buffer=noiseBuf; src.loop=true;
+    const grit=ctx.createBiquadFilter(); grit.type='bandpass'; grit.frequency.value=cfg.grit||1300; grit.Q.value=.7; // harsh grind band
+    const drive=ctx.createWaveShaper();  const cv=new Float32Array(257);   // soft clip = grit/harshness
+    for(let i=0;i<257;i++){ const x=i/128-1; cv[i]=Math.tanh(x*2.2); } drive.curve=cv;
+    const gsrc=ctx.createGain(); gsrc.gain.value=lv;
+    src.connect(grit); grit.connect(drive); drive.connect(gsrc);
+    // fast dense homogeneous grind modulation
+    const l1=ctx.createOscillator(); l1.type='sawtooth'; l1.frequency.value=(cfg.rate||34);
+    const l2=ctx.createOscillator(); l2.type='sawtooth'; l2.frequency.value=(cfg.rate||34)*0.82;
+    const l3=ctx.createOscillator(); l3.type='sine';     l3.frequency.value=0.5;
+    const mod=ctx.createGain(); mod.gain.value=lv*0.5; l1.connect(mod); l2.connect(mod);
+    const slow=ctx.createGain(); slow.gain.value=lv*0.15; l3.connect(slow);
+    mod.connect(gsrc.gain); slow.connect(gsrc.gain);
+    // reverb + distance: convolver, then a damping lowpass; mostly wet = far away
+    const conv=ctx.createConvolver(); conv.buffer=makeIR(cfg.rev||2.6, 2.4);
+    const damp=ctx.createBiquadFilter(); damp.type='lowpass'; damp.frequency.value=cfg.cutoff||900; damp.Q.value=.5; // distance
+    const wet=ctx.createGain(); wet.gain.value=cfg.wet||1.0;
+    const dry=ctx.createGain(); dry.gain.value=cfg.dry||0.1;      // a sliver of direct sound
+    gsrc.connect(conv); conv.connect(damp); damp.connect(wet); wet.connect(master);
+    gsrc.connect(dry); dry.connect(master);
+    const nodes=[src,l1,l2,l3]; nodes.forEach(o=>o.start(t));
+    grindNodes=nodes;
+  }
+  function stopGrind(){ if(!grindNodes) return; const t=ctx.currentTime;
+    grindNodes.forEach(o=>{ try{o.stop(t+.05);}catch(e){} }); grindNodes=null; }
+  function refreshGrind(){ if(ctx && on && P().grind) startGrind(P().grind); else stopGrind(); }
+
   function start(){
     if(!on) return;
     build();
     lastLead=0;
     if(ctx.state==='suspended') ctx.resume();
     master.gain.setTargetAtTime(P().vol[mode], ctx.currentTime, .8);
-    refreshHum();
+    refreshHum(); refreshGrind();
     if(timer) return;
     nextTime=ctx.currentTime+.08;
     timer=setInterval(pump,25);
@@ -2277,7 +2343,7 @@ refreshDeck();
   function stop(){
     if(!ctx) return;
     master.gain.setTargetAtTime(0, ctx.currentTime, .12);
-    stopHum();
+    stopHum(); stopGrind();
     clearInterval(timer); timer=null;
     setTimeout(()=>{ if(!on && ctx && ctx.state==='running') ctx.suspend(); },700);
   }
@@ -2290,7 +2356,7 @@ refreshDeck();
     wetN.gain.setTargetAtTime(p.delay.wet,t,.05);
     drumBus.gain.setTargetAtTime(p.drums.gain,t,.05);
     if(on) master.gain.setTargetAtTime(p.vol[mode],t,.3);
-    lastLead=0; refreshHum();
+    lastLead=0; refreshHum(); refreshGrind();
   }
 
   /* ---------------- sound effects ---------------- */
