@@ -2037,12 +2037,12 @@ refreshDeck();
             lead:[ {},{},{},{},{},{},{},{} ]}
       }},
 
-    /* ---- 8. GROUND LOOP : not music. One continuous 60 Hz mains hum with its
+    /* ---- 8. GROUND LOOP : not music. One continuous 50 Hz mains hum with its
          harmonics and a slow beat - the electrical noise the instrument is supposed to
          reject, left running. `hum:true` makes the engine skip the sequencer entirely. ---- */
     { id:'groundloop', name:'GROUND LOOP', desc:"Hans screwed up the wiring again, didn't he?", hum:true,
       bpm:{idle:50, live:50, astral:50},
-      cutoff:1400, vol:{idle:.28, live:.28},
+      cutoff:1400, vol:{idle:.7, live:1.5},
       delay:{time:.50, fb:.0, wet:.0},
       lead:{wave:'sine', peak:.0, twin:0, twinPeak:0, oct:0, gate:1},
       arp :{wave:'sine', peak:.0, idlePeak:.0, oct:0, every:8, idleEvery:8, gate:1},
@@ -2274,11 +2274,11 @@ refreshDeck();
     }
   }
 
-  function startHum(){                       // steady 60 Hz mains buzz + harmonics
+  function startHum(){                       // steady 50 Hz mains buzz + harmonics
     if(humNodes) return;
     const t=ctx.currentTime, lp=ctx.createBiquadFilter();
     lp.type='lowpass'; lp.frequency.value=420; lp.connect(master);
-    const partials=[[60,.5],[120,.10],[180,.20],[240,.06],[60.3,.18]];  // last one detuned = slow beat
+    const partials=[[50,.5],[100,.10],[150,.20],[200,.06],[50.3,.18]];  // last one detuned = slow beat
     humNodes=partials.map(([hz,lvl])=>{
       const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=hz;
       const g=ctx.createGain(); g.gain.value=lvl;
